@@ -3,13 +3,12 @@
 <head>
   <meta charset="utf-8">
   
-
   
   <title>Hexo</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <meta property="og:type" content="website">
 <meta property="og:title" content="Hexo">
-<meta property="og:url" content="http://yoursite.com/index.html">
+<meta property="og:url" content="http://example.com/index.html">
 <meta property="og:site_name" content="Hexo">
 <meta property="og:locale" content="en_US">
 <meta property="article:author" content="John Doe">
@@ -18,15 +17,19 @@
     <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
   
   
-    <link rel="icon" href="/favicon.png">
+    <link rel="shortcut icon" href="/favicon.png">
   
-  
-    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
   
   
 <link rel="stylesheet" href="/css/style.css">
 
-<meta name="generator" content="Hexo 4.2.0"></head>
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
 
 <body>
   <div id="container">
@@ -42,7 +45,7 @@
     </div>
     <div id="header-inner" class="inner">
       <nav id="main-nav">
-        <a id="main-nav-toggle" class="nav-icon"></a>
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
         
           <a class="main-nav-link" href="/">Home</a>
         
@@ -51,20 +54,520 @@
       </nav>
       <nav id="sub-nav">
         
-          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
         
-        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
       </nav>
       <div id="search-form-wrap">
-        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
       </div>
     </div>
   </div>
 </header>
+
       <div class="outer">
         <section id="main">
   
-    <article id="post-解决Spring-Boot项目集成shiro使用mockmvc测试遇到的问题" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Go vs Java深入对比系列（二）：基本语法与类型" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2024/10/30/Go%20vs%20Java%E6%B7%B1%E5%85%A5%E5%AF%B9%E6%AF%94%E7%B3%BB%E5%88%97%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9A%E5%9F%BA%E6%9C%AC%E8%AF%AD%E6%B3%95%E4%B8%8E%E7%B1%BB%E5%9E%8B/" class="article-date">
+  <time class="dt-published" datetime="2024-10-29T17:08:13.056Z" itemprop="datePublished">2024-10-30</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>二、基本语法对比</p>
+<ol>
+<li>变量声明方式<br>go 支持多种变量声明方式<br>&#x2F;&#x2F; 1. 标准声明，类型在变量名字后面，末尾不需要加分号<br>var name string<br>var age int &#x3D; 25</li>
+</ol>
+<p>&#x2F;&#x2F; 2. 短变量声明，这种声明方式类似Python，但与Python不同的是，go是静态语言，由go编译器进行自动类型推导<br>name :&#x3D; “Tony”<br>age :&#x3D; 25</p>
+<p>&#x2F;&#x2F; 3. 批量声明<br>var (<br>    name    string<br>    age     int<br>    isValid bool<br>)</p>
+<p>&#x2F;&#x2F; 4. 零值初始化<br>Go的变量声明会自动初始化为零值，需要注意的是——数值类型的零值为 0 ，字符串的零值为 “” ，布尔的零值为false ， 指针的零值为 nil 。</p>
+<p>Java的变量声明则相对严格：<br>&#x2F;&#x2F; 1. 必须指定类型<br>String name;<br>int age;</p>
+<p>&#x2F;&#x2F; 2. 声明并初始化<br>String name &#x3D; “Tony”;<br>int age &#x3D; 25;</p>
+<p>&#x2F;&#x2F; 3. Java的变量必须在使用前显式初始化，不会自动初始化(局部变量)</p>
+<ol start="2">
+<li>类型系统</li>
+</ol>
+<p>尽管Go和Java都是静态类型语言，它们在数据类型的设计和使用上还是有一些区别：<br>Go语言和Java一样，都提供了一些原生的数据类型，包括:</p>
+<table>
+<thead>
+<tr>
+<th>Go</th>
+<th>Java</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>bool</td>
+<td>boolean</td>
+</tr>
+<tr>
+<td>int8， int16， int32， int64</td>
+<td>byte， short， int， long</td>
+</tr>
+<tr>
+<td>uint8， uint16， uint32， uint64</td>
+<td>无</td>
+</tr>
+<tr>
+<td>float32， float64</td>
+<td>float， double</td>
+</tr>
+<tr>
+<td>complex64， complex128</td>
+<td>无</td>
+</tr>
+<tr>
+<td>string</td>
+<td>String</td>
+</tr>
+</tbody></table>
+<p>可以看到，尽管有些类型的名字不太一样，但基本覆盖了布尔型、整型、浮点型这些常见的类型。不过也有几点区别:</p>
+<ol>
+<li>Go额外提供了无符号整型uint，而Java没有。  </li>
+<li>Go提供了复数类型complex，而Java没有。</li>
+<li>Go的字符串类型是string，是原生类型;而Java用的是String类。</li>
+</ol>
+<p>此外，Java有单独的字符类型char，而Go却没有。在Go中，rune类型实际上就是int32的别名，常用来表示Unicode码点。</p>
+<h3 id="平台无关类型和平台相关类型"><a href="#平台无关类型和平台相关类型" class="headerlink" title="平台无关类型和平台相关类型"></a>平台无关类型和平台相关类型</h3><p>Go语言的数值类型还分为平台无关类型和平台相关类型。平台无关类型包括int8、uint8、int16、uint16、int32、uint32、int64、uint64等，它们在任何平台上所占的位数都是固定的。而平台相关类型包括int、uint和uintptr，它们的位数则取决于构建代码的平台:</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>32位平台</th>
+<th>64位平台</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>int</td>
+<td>32位</td>
+<td>64位</td>
+</tr>
+<tr>
+<td>uint</td>
+<td>32位</td>
+<td>64位</td>
+</tr>
+<tr>
+<td>uintptr</td>
+<td>32位</td>
+<td>64位</td>
+</tr>
+</tbody></table>
+<p>以int类型为例，在32位平台上它是32位的，而在64位平台上则是64位的。所以在跨平台的代码中，应该尽量使用平台无关类型，避免位数的差异导致的问题。而平台相关类型通常只在低层系统编程或者性能优化时使用。</p>
+<p>而在Java中，大部分原生类型都是固定位数的，不受平台影响。不过也有一些例外，比如long类型:</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>32位平台</th>
+<th>64位平台</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>int</td>
+<td>32位</td>
+<td>32位</td>
+</tr>
+<tr>
+<td>long</td>
+<td>32位</td>
+<td>64位</td>
+</tr>
+<tr>
+<td>long long</td>
+<td>64位</td>
+<td>64位</td>
+</tr>
+</tbody></table>
+<p>在一些32位的JVM实现中(如32位Windows系统)，long占4个字节也就是32位的。但在主流的64位平台上，long是64位。不过这种差异很少会影响到普通的Java程序。</p>
+<h2 id="数组"><a href="#数组" class="headerlink" title="数组"></a>数组</h2><p>说到数组，Java和Go就有了很大的不同。在Java中，数组是引用类型。声明一个数组需要指定元素类型和数组长度，例如:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span>[] arr = <span class="keyword">new</span> <span class="title class_">int</span>[<span class="number">5</span>];</span><br></pre></td></tr></table></figure>
+
+<p>这里的arr是一个引用，指向一个包含5个int类型元素的数组对象。数组的元素在没有显式初始化的情况下，会被赋予类型的默认值。<br>我们也可以在声明时直接提供初始值:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span>[] arr = &#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>而在Go语言中，数组是值类型。声明数组时同样需要指定元素类型和数组长度:</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 没有显式初始化时，内部默认为零值，等价于0,0,0,0,0</span></span><br><span class="line"><span class="keyword">var</span> arr [<span class="number">5</span>]<span class="type">int</span></span><br></pre></td></tr></table></figure>
+<p>我们也可以在声明时提供初始值:</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">arr := [<span class="number">5</span>]<span class="type">int</span>&#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以在声明时提供部分初始值，缺失位置为零值:</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//等价于1, 2, 3, 0, 0</span></span><br><span class="line">arr := [<span class="number">5</span>]<span class="type">int</span>&#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>&#125;</span><br></pre></td></tr></table></figure>
+
+<p>与Java不同的是，Go还支持让编译器根据初始值的个数自动推断数组长度:</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 等价于 [5]int&#123;1, 2, 3, 4, 5&#125;</span></span><br><span class="line">arr := [...]<span class="type">int</span>&#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>&#125; </span><br></pre></td></tr></table></figure>
+
+<p>此外，Go还支持使用索引来初始化数组的特定元素:</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 等价于 [5]int&#123;0, 10, 0, 30, 0&#125;</span></span><br><span class="line">arr := [<span class="number">5</span>]<span class="type">int</span>&#123;<span class="number">1</span>: <span class="number">10</span>, <span class="number">3</span>: <span class="number">30</span>&#125; </span><br></pre></td></tr></table></figure>
+
+
+<p>从内存布局上看，Java的数组对象本身是分配在堆内存上的，而数组元素则可能在堆或者栈上。而Go的数组则总是分配在连续的内存上。如果数组是函数的局部变量，那么整个数组都会在栈上分配。</p>
+<p>此外，Go的数组是值语义，赋值或者传参时会复制整个数组。而Java的数组是引用语义，赋值或传参时只复制引用。</p>
+<p>Java中的数组是引用类型，这意味着你可以将一个数组赋值给另一个数组，它们会指向同一个数组对象:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span>[] arr1 = &#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>&#125;;</span><br><span class="line"><span class="type">int</span>[] arr2 = arr1;</span><br><span class="line">arr2[<span class="number">0</span>] = <span class="number">10</span>;</span><br><span class="line">System.out.println(arr1[<span class="number">0</span>]); <span class="comment">// 输出10</span></span><br></pre></td></tr></table></figure>
+
+<p>改变arr2的元素，也会影响到arr1，因为它们本质上是同一个数组。</p>
+<p>而Go的数组是值类型，赋值或传参会复制整个数组:</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">arr1 := [<span class="number">3</span>]<span class="type">int</span>&#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>&#125;</span><br><span class="line">arr2 := arr1</span><br><span class="line">arr2[<span class="number">0</span>] = <span class="number">10</span></span><br><span class="line">fmt.Println(arr1[<span class="number">0</span>]) <span class="comment">// 输出1</span></span><br></pre></td></tr></table></figure>
+
+<p>改变arr2不会影响到arr1，因为它们是两个完全独立的数组。</p>
+<p>这种差异会影响到数组作为函数参数时的行为:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Java</span></span><br><span class="line"><span class="keyword">void</span> <span class="title function_">foo</span><span class="params">(<span class="type">int</span>[] arr)</span> &#123;</span><br><span class="line">    arr[<span class="number">0</span>] = <span class="number">10</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span>[] arr = &#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>&#125;;</span><br><span class="line">foo(arr);</span><br><span class="line">System.out.println(arr[<span class="number">0</span>]); <span class="comment">// 输出10</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Go</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">foo</span><span class="params">(arr [3]<span class="type">int</span>)</span></span> &#123;</span><br><span class="line">    arr[<span class="number">0</span>] = <span class="number">10</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">arr := [<span class="number">3</span>]<span class="type">int</span>&#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>&#125;</span><br><span class="line">foo(arr)</span><br><span class="line">fmt.Println(arr[<span class="number">0</span>]) <span class="comment">// 输出1</span></span><br></pre></td></tr></table></figure>
+
+<p>在Java中，函数内部对数组元素的修改会影响到原数组。而在Go中,函数内部得到的是数组的一个副本，对它的修改不会影响原数组。</p>
+<p>如果你想在Go中实现类似Java的引用传递效果，可以使用数组指针:</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">foo</span><span class="params">(arr *[3]<span class="type">int</span>)</span></span> &#123;</span><br><span class="line">    (*arr)[<span class="number">0</span>] = <span class="number">10</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">arr := [<span class="number">3</span>]<span class="type">int</span>&#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>&#125;</span><br><span class="line">foo(&amp;arr)</span><br><span class="line">fmt.Println(arr[<span class="number">0</span>]) <span class="comment">// 输出10</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="多维数组"><a href="#多维数组" class="headerlink" title="多维数组"></a>多维数组</h3><p>Java支持多维数组，实际上是数组的数组:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span>[][] arr = <span class="keyword">new</span> <span class="title class_">int</span>[<span class="number">3</span>][<span class="number">4</span>];</span><br></pre></td></tr></table></figure>
+
+<p>这里的arr是一个包含3个元素的数组，每个元素又是一个包含4个int类型元素的数组。</p>
+<p>Go也支持多维数组，但实现方式不同:</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> arr [<span class="number">3</span>][<span class="number">4</span>]<span class="type">int</span></span><br></pre></td></tr></table></figure>
+
+<p>这里的arr是一个真正的二维数组，内存是连续分配的。</p>
+<h3 id="数组的长度"><a href="#数组的长度" class="headerlink" title="数组的长度"></a>数组的长度</h3><p>在Java中，数组的长度可以通过length属性获取:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span>[] arr = &#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>&#125;;</span><br><span class="line">System.out.println(arr.length); <span class="comment">// 输出3</span></span><br></pre></td></tr></table></figure>
+
+<p>在Go中，可以使用内置的len函数:</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">arr := [...]<span class="type">int</span>&#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>&#125;</span><br><span class="line">fmt.Println(<span class="built_in">len</span>(arr)) <span class="comment">// 输出3</span></span><br></pre></td></tr></table></figure>
+
+<p>需要注意的是，在Go中数组的长度是类型的一部分。[3]int和[4]int是两种不同的类型。而在Java中，数组的长度与类型无关。</p>
+<p>在go语言中，我们使用切片要多过使用数组。切片(slice)是数组的一个视图。它提供了一种方便且高效的方式来操作数组的一部分。切片本身并不拥有任何数据，它只是描述了底层数组的一个片段。可以用望远镜来类比切片——望远镜本身不存储你看到的风景，它只是提供了一个观察窗口。同样，切片也只是提供了观察数组的”窗口”。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">arr := [<span class="number">5</span>]<span class="type">int</span>&#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>&#125;</span><br><span class="line">slice := arr[<span class="number">1</span>:<span class="number">4</span>]</span><br></pre></td></tr></table></figure>
+<p>这里的slice就是一个切片，它描述了数组arr的一个片段，从索引1(包含)到索引4(不包含)，也就是{2, 3, 4}。</p>
+<p>Java中没有切片的概念，但可以通过Arrays.copyOfRange()方法来获取数组的一部分:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span>[] arr = &#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>&#125;;</span><br><span class="line"><span class="type">int</span>[] slice = Arrays.copyOfRange(arr, <span class="number">1</span>, <span class="number">4</span>);</span><br></pre></td></tr></table></figure>
+
+<p>这会创建一个新的数组slice，包含arr[1]到arr[3]的元素。</p>
+<p>除了从数组或其他切片创建切片外,Go还提供了内置的make函数来创建切片:</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">slice := <span class="built_in">make</span>([]<span class="type">int</span>, <span class="number">3</span>, <span class="number">5</span>)</span><br></pre></td></tr></table></figure>
+
+<p>这会创建一个长度为3,容量为5的int类型的切片。底层数组会在堆上分配。</p>
+<p>类似地,Java可以使用Arrays.copyOf方法来创建一个新的数组:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span>[] slice = Arrays.copyOf(<span class="keyword">new</span> <span class="title class_">int</span>[<span class="number">5</span>], <span class="number">3</span>);</span><br></pre></td></tr></table></figure>
+
+<p>这会创建一个长度为3,容量为5的int数组。</p>
+<p>在Go中，切片由三部分组成:</p>
+<ul>
+<li>指向底层数组的指针</li>
+<li>切片的长度(length) </li>
+<li>切片的容量(capacity)</li>
+</ul>
+<p>其中,长度表示切片中元素的数量，容量表示切片起始位置到底层数组末尾的元素数量。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">arr := [<span class="number">5</span>]<span class="type">int</span>&#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>&#125;</span><br><span class="line">slice := arr[<span class="number">1</span>:<span class="number">4</span>]</span><br><span class="line">fmt.Println(<span class="built_in">len</span>(slice)) <span class="comment">// 输出3</span></span><br><span class="line">fmt.Println(<span class="built_in">cap</span>(slice)) <span class="comment">// 输出4</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="切片的遍历"><a href="#切片的遍历" class="headerlink" title="切片的遍历"></a>切片的遍历</h3><p>在Go中，可以使用for range语法轻松遍历切片:</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">slice := []<span class="type">int</span>&#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>&#125;</span><br><span class="line"><span class="keyword">for</span> i, v := <span class="keyword">range</span> slice &#123;</span><br><span class="line">    fmt.Printf(<span class="string">&quot;index: %d, value: %d\n&quot;</span>, i, v)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在Java中,可以使用普通的for循环:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span>[] slice = &#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>&#125;;</span><br><span class="line"><span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; slice.length; i++) &#123;</span><br><span class="line">    System.out.printf(<span class="string">&quot;index: %d, value: %d\n&quot;</span>, i, slice[i]);</span><br><span class="line">&#125;  </span><br></pre></td></tr></table></figure>
+
+<p>或者使用增强型for循环(forEach):</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (<span class="type">int</span> v : slice) &#123;</span><br><span class="line">    System.out.println(v);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>切片提供了比数组更强大、更灵活的操作方式:</p>
+<ol>
+<li>可以很方便地获取数组的一部分。</li>
+<li>可以通过改变切片的长度来动态改变切片的大小(最大不超过容量)。</li>
+<li>多个切片可以共享同一个底层数组，节省内存空间。</li>
+<li>内置的append函数可以方便地向切片添加元素，切片会自动扩容（扩容会改变底层数组）。</li>
+</ol>
+<h3 id="切片的坑"><a href="#切片的坑" class="headerlink" title="切片的坑"></a>切片的坑</h3><p>正因为切片共享底层数组，在使用时也需要注意一些坑:</p>
+<ol>
+<li>当多个切片共享同一个数组时，对一个切片的修改会影响到其他切片。</li>
+<li>当切片的容量用尽后，再次append会导致重新分配内存，此时就不再与原数组共享内存了。</li>
+</ol>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">arr := [<span class="number">5</span>]<span class="type">int</span>&#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>&#125;</span><br><span class="line">slice1 := arr[<span class="number">1</span>:<span class="number">4</span>] <span class="comment">// 切片的容量是从子切片的起点，到底层数组的终点</span></span><br><span class="line"></span><br><span class="line">slice2 := arr[<span class="number">2</span>:<span class="number">5</span>]</span><br><span class="line">fmt.Println(slice1) <span class="comment">// 输出[2 3 4]</span></span><br><span class="line">fmt.Println(slice2) <span class="comment">// 输出[3 4 5]</span></span><br><span class="line"></span><br><span class="line">slice1 = <span class="built_in">append</span>(slice1, <span class="number">6</span>)</span><br><span class="line">fmt.Println(arr)    <span class="comment">// 输出[1 2 3 4 6]</span></span><br><span class="line">fmt.Println(slice1) <span class="comment">// 输出[2 3 4 6]</span></span><br><span class="line">fmt.Println(slice2) <span class="comment">// 输出[3 4 6]  </span></span><br></pre></td></tr></table></figure>
+
+<p>这里slice1和slice2共享同一个底层数组。当slice1添加元素时,会影响到原数组和slice2。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">arr := [<span class="number">5</span>]<span class="type">int</span>&#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>&#125;</span><br><span class="line">slice := arr[<span class="number">1</span>:<span class="number">3</span>]</span><br><span class="line">newSlice := <span class="built_in">append</span>(slice, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>)</span><br><span class="line">fmt.Println(arr)      <span class="comment">// 输出[1 2 3 4 5]  </span></span><br><span class="line">fmt.Println(slice)    <span class="comment">// 输出[2 3]</span></span><br><span class="line">fmt.Println(newSlice) <span class="comment">// 输出[2 3 6 7 8]</span></span><br></pre></td></tr></table></figure>
+
+<p>在这个例子中，因为slice的容量只有2，当添加3个元素时，会重新分配内存。此时newSlice就不再与arr共享内存了。</p>
+<p>切片扩容策略：<br>    当容量小于 256 的时候，两倍扩容；<br>    否则，按照 1.25 扩容。<br>ps：低版本是 1024 作为分界点。</p>
+<p>在使用切片时我们最好预估切片最终的大小，使用make预分配可以避免切片多次扩容。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 性能不好的写法</span></span><br><span class="line">s := <span class="built_in">make</span>([]<span class="type">int</span>, <span class="number">0</span>)</span><br><span class="line"><span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="number">10000</span>; i++ &#123;</span><br><span class="line">    s = <span class="built_in">append</span>(s, i)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 更好的写法</span></span><br><span class="line">s := <span class="built_in">make</span>([]<span class="type">int</span>, <span class="number">0</span>, <span class="number">10000</span>)</span><br><span class="line"><span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="number">10000</span>; i++ &#123;</span><br><span class="line">    s = <span class="built_in">append</span>(s, i)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果可能，尽量复用已有的切片而不是创建新的</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 性能不好的写法</span></span><br><span class="line"><span class="keyword">for</span> _, v := <span class="keyword">range</span> items &#123;</span><br><span class="line">    processed := <span class="built_in">make</span>([]<span class="type">int</span>, <span class="number">0</span>)</span><br><span class="line">    <span class="comment">// 处理v...</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 更好的写法</span></span><br><span class="line">processed := <span class="built_in">make</span>([]<span class="type">int</span>, <span class="number">0</span>, <span class="built_in">len</span>(items))</span><br><span class="line"><span class="keyword">for</span> _, v := <span class="keyword">range</span> items &#123;</span><br><span class="line">    processed = processed[:<span class="number">0</span>] <span class="comment">// 清空切片但保留容量</span></span><br><span class="line">    <span class="comment">// 处理v...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<p>数组和切片的区别：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>数组</th>
+<th>切片</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>直接初始化</td>
+<td>支持</td>
+<td>支持</td>
+</tr>
+<tr>
+<td>make</td>
+<td>不支持</td>
+<td>支持</td>
+</tr>
+<tr>
+<td>访问元素</td>
+<td>arr[i]</td>
+<td>arr[i]</td>
+</tr>
+<tr>
+<td>len</td>
+<td>长度</td>
+<td>已有元素个数</td>
+</tr>
+<tr>
+<td>cap</td>
+<td>长度</td>
+<td>容量</td>
+</tr>
+<tr>
+<td>append</td>
+<td>不支持</td>
+<td>支持</td>
+</tr>
+<tr>
+<td>扩容</td>
+<td>不可以</td>
+<td>可以</td>
+</tr>
+</tbody></table>
+<h3 id="Map类型对比"><a href="#Map类型对比" class="headerlink" title="Map类型对比"></a>Map类型对比</h3><p>现在让我们来看看另一个重要的复合类型：Map。Java中的Map是一个接口，有多种实现（HashMap、TreeMap等），而Go中的map是语言内置的类型。这种差异体现了两种语言不同的设计哲学。</p>
+<h4 id="Java的Map体系"><a href="#Java的Map体系" class="headerlink" title="Java的Map体系"></a>Java的Map体系</h4><p>在Java中，Map是一个顶层接口，定义了键值对操作的基本行为：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">Map</span>&lt;K, V&gt; &#123;</span><br><span class="line">    V <span class="title function_">put</span><span class="params">(K key, V value)</span>;</span><br><span class="line">    V <span class="title function_">get</span><span class="params">(Object key)</span>;</span><br><span class="line">    <span class="type">boolean</span> <span class="title function_">containsKey</span><span class="params">(Object key)</span>;</span><br><span class="line">    <span class="comment">// ... 其他方法</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 常用实现</span></span><br><span class="line">Map&lt;String, Integer&gt; hashMap = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">Map&lt;String, Integer&gt; treeMap = <span class="keyword">new</span> <span class="title class_">TreeMap</span>&lt;&gt;();</span><br><span class="line">Map&lt;String, Integer&gt; linkedHashMap = <span class="keyword">new</span> <span class="title class_">LinkedHashMap</span>&lt;&gt;();</span><br></pre></td></tr></table></figure>
+
+<p>这种设计的优点是灵活性强，可以根据需要选择不同的实现：</p>
+<ul>
+<li>HashMap：无序，O(1)的查找性能</li>
+<li>TreeMap：有序，基于红黑树，O(log n)的性能</li>
+<li>LinkedHashMap：保持插入顺序</li>
+</ul>
+<h4 id="Go的Map设计"><a href="#Go的Map设计" class="headerlink" title="Go的Map设计"></a>Go的Map设计</h4><p>Go则采用了更简单的方案，只提供了一种内置的map类型：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 声明并初始化</span></span><br><span class="line">m := <span class="built_in">make</span>(<span class="keyword">map</span>[<span class="type">string</span>]<span class="type">int</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 或者使用字面量语法</span></span><br><span class="line">m := <span class="keyword">map</span>[<span class="type">string</span>]<span class="type">int</span>&#123;</span><br><span class="line">    <span class="string">&quot;apple&quot;</span>: <span class="number">1</span>,</span><br><span class="line">    <span class="string">&quot;banana&quot;</span>: <span class="number">2</span>,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 基本操作</span></span><br><span class="line">m[<span class="string">&quot;orange&quot;</span>] = <span class="number">3</span>        <span class="comment">// 插入</span></span><br><span class="line">value := m[<span class="string">&quot;apple&quot;</span>]    <span class="comment">// 读取</span></span><br><span class="line"><span class="built_in">delete</span>(m, <span class="string">&quot;banana&quot;</span>)    <span class="comment">// 删除</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 判断key是否存在</span></span><br><span class="line"><span class="keyword">if</span> value, ok := m[<span class="string">&quot;apple&quot;</span>]; ok &#123;</span><br><span class="line">    fmt.Printf(<span class="string">&quot;存在，值为: %d\n&quot;</span>, value)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Go的map虽然看起来简单，但有一些特性需要特别注意：</p>
+<ol>
+<li><strong>并发不安全</strong><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 这样做是危险的！</span></span><br><span class="line"><span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">    m[<span class="string">&quot;key&quot;</span>] = <span class="number">1</span></span><br><span class="line">&#125;()</span><br><span class="line"><span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">    _ = m[<span class="string">&quot;key&quot;</span>]</span><br><span class="line">&#125;()</span><br></pre></td></tr></table></figure></li>
+</ol>
+<p>如果需要并发安全的map，我们有两个选择：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 选择1：使用sync.Map</span></span><br><span class="line"><span class="keyword">var</span> sm sync.Map</span><br><span class="line">sm.Store(<span class="string">&quot;key&quot;</span>, value)</span><br><span class="line">val, ok := sm.Load(<span class="string">&quot;key&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 选择2：使用互斥锁保护普通map</span></span><br><span class="line"><span class="keyword">var</span> m = <span class="built_in">make</span>(<span class="keyword">map</span>[<span class="type">string</span>]<span class="type">int</span>)</span><br><span class="line"><span class="keyword">var</span> mutex sync.Mutex</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">safeWrite</span><span class="params">(key <span class="type">string</span>, value <span class="type">int</span>)</span></span> &#123;</span><br><span class="line">    mutex.Lock()</span><br><span class="line">    <span class="keyword">defer</span> mutex.Unlock()</span><br><span class="line">    m[key] = value</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li><strong>键的类型限制</strong><br>Go的map键类型必须是可比较的（comparable），这意味着函数、切片、包含切片的结构体都不能作为键：</li>
+</ol>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 这些都是非法的</span></span><br><span class="line">m1 := <span class="built_in">make</span>(<span class="keyword">map</span>[[]<span class="type">int</span>]<span class="type">string</span>)           <span class="comment">// 切片不能作为键</span></span><br><span class="line">m2 := <span class="built_in">make</span>(<span class="keyword">map</span>[<span class="function"><span class="keyword">func</span><span class="params">()</span></span>]<span class="type">string</span>)          <span class="comment">// 函数不能作为键</span></span><br><span class="line">m3 := <span class="built_in">make</span>(<span class="keyword">map</span>[<span class="keyword">map</span>[<span class="type">string</span>]<span class="type">int</span>]<span class="type">string</span>)  <span class="comment">// map不能作为键</span></span><br></pre></td></tr></table></figure>
+
+<ol start="3">
+<li><strong>内存管理</strong><br>Go的map会自动扩容，但不会自动收缩。如果你删除了大量的键值对，需要考虑重建map来释放内存：</li>
+</ol>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 如果删除了大量数据后，可以通过重建map来收缩内存</span></span><br><span class="line">oldMap := <span class="built_in">make</span>(<span class="keyword">map</span>[<span class="type">string</span>]<span class="type">int</span>)</span><br><span class="line"><span class="comment">// ... 填充数据后删除了大量键值对</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 重建map来收缩内存</span></span><br><span class="line">newMap := <span class="built_in">make</span>(<span class="keyword">map</span>[<span class="type">string</span>]<span class="type">int</span>, <span class="built_in">len</span>(oldMap))</span><br><span class="line"><span class="keyword">for</span> k, v := <span class="keyword">range</span> oldMap &#123;</span><br><span class="line">    newMap[k] = v</span><br><span class="line">&#125;</span><br><span class="line">oldMap = newMap</span><br></pre></td></tr></table></figure>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2024/10/30/Go%20vs%20Java%E6%B7%B1%E5%85%A5%E5%AF%B9%E6%AF%94%E7%B3%BB%E5%88%97%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9A%E5%9F%BA%E6%9C%AC%E8%AF%AD%E6%B3%95%E4%B8%8E%E7%B1%BB%E5%9E%8B/" data-id="cm2upc79n0000y0urcm8rhm67" data-title="" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Go vs Java深入对比系列（一）：语言设计哲学" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2024/10/30/Go%20vs%20Java%E6%B7%B1%E5%85%A5%E5%AF%B9%E6%AF%94%E7%B3%BB%E5%88%97%EF%BC%88%E4%B8%80%EF%BC%89%EF%BC%9A%E8%AF%AD%E8%A8%80%E8%AE%BE%E8%AE%A1%E5%93%B2%E5%AD%A6/" class="article-date">
+  <time class="dt-published" datetime="2024-10-29T16:49:29.295Z" itemprop="datePublished">2024-10-30</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="Go-vs-Java深入对比系列（一）：语言设计哲学"><a href="#Go-vs-Java深入对比系列（一）：语言设计哲学" class="headerlink" title="Go vs Java深入对比系列（一）：语言设计哲学"></a>Go vs Java深入对比系列（一）：语言设计哲学</h1><p>我们都知道类比学习是学习新知识的好方法，作为一名从Java转到go的开发者，这一系列博客文章我们就来聊一聊go和java的差异，希望能够帮助大家触类旁通，快速上手go，同时也帮助自己厘清一些go中容易和Java混淆的地方，从而更好地去学习go。</p>
+<p>首先两者的差异不仅仅是语法层面，更多的是设计理念的不同。接下来就让我们从语言设计哲学层面，比较下这两门优秀的编程语言。</p>
+<h2 id="一、语言设计理念的差异：集大成者vs极简主义者"><a href="#一、语言设计理念的差异：集大成者vs极简主义者" class="headerlink" title="一、语言设计理念的差异：集大成者vs极简主义者"></a>一、语言设计理念的差异：集大成者vs极简主义者</h2><p>从程序员的视角来看，每一门编程语言的诞生都烙印着特定时代的印记，编程语言的设计哲学往往深刻反映了它所要解决的时代问题。</p>
+<p><strong>Java：“Write Once， Run Anywhere”</strong></p>
+<p>Java诞生于1995年，彼时个人电脑刚刚普及，单核处理器占据主导，互联网还是初生的朝阳，正处于萌芽发展期。开发者们苦恼于不同平台间代码的移植性问题。Java通过引入JVM作为中间层，优雅地解决了这个问题。<br>Java的核心设计理念包括：</p>
+<ul>
+<li>面向对象：万物皆对象，通过类的继承和多态来组织代码</li>
+<li>类型安全：强类型机制，在编译期就能发现大部分类型错误</li>
+<li>自动内存管理：GC机制让程序员从内存管理中解放</li>
+<li>丰富的库生态：通过Maven&#x2F;Gradle等包管理工具，可以轻松使用海量第三方库</li>
+</ul>
+<p><strong>Go：“Less is More”</strong></p>
+<p>Go语言的诞生，则要追溯到2007年的一个下午，在Google山景城总部的一间办公室里。有趣的是，那天Rob Pike启动了一个C++工程的编译构建，预计需要一个小时。正是利用这段等待时间，他与Robert Griesemer和Ken Thompson坐在一起，讨论设计一门新语言的想法。2007年，世界已经大不相同。Google这样的巨头面临着前所未有的挑战:</p>
+<ul>
+<li>代码库规模空前膨胀，C++编译太慢，影响开发效率</li>
+<li>Java等语言的OOP也显露出了一些弊端，过于复杂，代码冗长</li>
+<li>多核时代来临，多线程编程困难，容易出错</li>
+<li>缺乏对并发的语言级支持</li>
+<li>大型项目构建与依赖管理困难</li>
+</ul>
+<p>Rob Pike、Ken Thompson和Robert Griesemer这三位大师级人物，决定创造一门全新的语言。他们不追求大而全，而是追求实用性。于是，Go语言应运而生，它的设计理念是：</p>
+<ul>
+<li>追求简单：摒弃了许多传统语言特性（如类继承、异常处理等）</li>
+<li>工程导向：快速编译、简单部署</li>
+<li>并发友好：从语言层面支持并发（goroutine和channel）</li>
+<li>注重实用：内置开发工具链（格式化、测试等）</li>
+</ul>
+<p>可以说Go和Java分别代表着两种不同的技术路线和设计理念。正如Go语言之父Rob Pike所说:”Go语言的诞生源于对现有编程语言的不满。我们发现大型软件项目的开发正变得越来越缓慢和笨拙，软件设计的复杂度不断攀升，编译速度也越来越慢。我们需要一门面向未来的编程语言来解决这些问题。”</p>
+<p>Go语言摒弃了许多传统编程语言的复杂特性。比如:</p>
+<ul>
+<li>不支持继承，而是通过组合实现代码复用</li>
+<li>没有异常处理机制，而是使用显式的错误返回值</li>
+<li>没有泛型支持(直到Go 1.18才添加基本支持)</li>
+<li>没有隐式类型转换，要求类型的显式匹配</li>
+</ul>
+<p>这些”限制”不是缺陷，而是经过深思熟虑的设计选择。通过减少语言特性，Go显著降低了开发者的心智负担，提高了代码的可维护性。</p>
+<p>Go语言在工程实践层面做了大量创新:</p>
+<ol>
+<li><p>极速的编译速度</p>
+<ul>
+<li>精心设计的包管理系统避免了循环依赖</li>
+<li>只导入需要的内容而不是整个包</li>
+<li>编译器优化设计，支持增量编译</li>
+</ul>
+</li>
+<li><p>内置工具链</p>
+<ul>
+<li>统一的代码格式化工具go fmt</li>
+<li>静态代码分析工具go vet</li>
+<li>集成的测试框架工具go test</li>
+<li>文档生成工具go doc</li>
+<li>依赖管理工具go mod</li>
+</ul>
+</li>
+<li><p>原生并发支持</p>
+<ul>
+<li>goroutine提供了轻量级的并发原语</li>
+<li>channel实现了CSP并发模型</li>
+<li>调度器能够充分利用多核CPU</li>
+</ul>
+</li>
+</ol>
+<p>相比之下，Java走的是一条截然不同的道路。它的设计理念可以概括为”一切皆对象”。</p>
+<ol>
+<li><p>Java是一门纯粹的面向对象语言，它提供了:</p>
+<ul>
+<li>完整的类继承体系</li>
+<li>接口与抽象类</li>
+<li>封装、继承、多态三大特性</li>
+<li>反射机制支持</li>
+</ul>
+</li>
+<li><p>Java的类型系统非常严格，是强类型系统：</p>
+<ul>
+<li>强制要求变量声明类型</li>
+<li>编译期类型检查</li>
+<li>运行时类型安全</li>
+<li>泛型系统支持</li>
+</ul>
+</li>
+<li><p>平台无关性，Java通过JVM实现了”Write Once， Run Anywhere”</p>
+</li>
+</ol>
+<h3 id="Java的”全能主义”"><a href="#Java的”全能主义”" class="headerlink" title="Java的”全能主义”"></a>Java的”全能主义”</h3><p>如果要用一个词来形容Java，那就是”全能”。Java几乎为所有的编程范式都提供了支持：</p>
+<ul>
+<li>你想要面向对象编程？Java的类、继承、多态体系一应俱全</li>
+<li>你想要函数式编程？Java 8后引入的Lambda表达式让你爽到飞起</li>
+<li>你想要泛型编程？Java的泛型虽有类型擦除，但足以应付大多数场景</li>
+<li>你想要反射机制？Java的反射API可以让你在运行时做任何事</li>
+</ul>
+<p>这种”全能主义”的哲学，造就了Java的繁荣，也造就了它的复杂性。</p>
+<h3 id="Go的”极简主义”"><a href="#Go的”极简主义”" class="headerlink" title="Go的”极简主义”"></a>Go的”极简主义”</h3><p>而Go走了一条完全不同的路。如果说Java是一把瑞士军刀，那Go就是一把中餐厨师手里的菜刀。</p>
+<p>Go的设计者们信奉”Less is More”的哲学：</p>
+<ul>
+<li>不提供类和继承？因为组合优于继承</li>
+<li>不支持方法重载？因为显式优于隐式</li>
+<li>不允许空指针？因为避免隐患优于灵活性</li>
+<li>强制代码格式化？因为统一优于自由</li>
+</ul>
+<h2 id="二、错误处理：优雅vs实用"><a href="#二、错误处理：优雅vs实用" class="headerlink" title="二、错误处理：优雅vs实用"></a>二、错误处理：优雅vs实用</h2><p>错误处理的设计体现了两种语言截然不同的哲学取向。</p>
+<p><strong>Java的异常体系：追求优雅</strong></p>
+<p>还记得第一次接触Java异常处理时，我被它的优雅所折服。try-catch-finally的结构就像一首工整的诗：</p>
+<ul>
+<li>try块放置可能出错的代码</li>
+<li>catch块优雅地处理异常</li>
+<li>finally块确保资源正确释放</li>
+</ul>
+<p>层层嵌套的异常链，让你可以追踪错误的完整路径。受检异常(Checked Exception)的设计，强制开发者思考错误处理。这一切都是那么的优雅。</p>
+<p>但优雅是有代价的。异常处理代码往往会打断程序的正常流程，降低代码的可读性。大量的try-catch块会让代码变得臃肿。</p>
+<p><strong>Go的error处理：追求实用</strong></p>
+<p>相比之下，Go的错误处理就显得”粗暴”得多。它将错误视为普通的返回值，要求开发者显式处理每一个错误。</p>
+<p>这看起来似乎很笨拙。但实际上，这种设计却有其深刻的道理：</p>
+<ol>
+<li>错误处理与正常流程融为一体</li>
+<li>迫使开发者认真思考每个错误场景</li>
+<li>提高代码的可维护性</li>
+</ol>
+<h2 id="三、并发模型：重器vs轻剑"><a href="#三、并发模型：重器vs轻剑" class="headerlink" title="三、并发模型：重器vs轻剑"></a>三、并发模型：重器vs轻剑</h2><p>并发编程是现代软件开发中的一个重要课题，特别是在多核处理器和分布式系统日益普及的今天。Java和Go在并发模型上的设计差异显著，分别代表了两种不同的哲学和技术路径。</p>
+<p><strong>Java的重器：线程池与高级并发工具</strong></p>
+<p>Java诞生时，多核处理器还不是主流。它采用了传统的基于线程的并发模型：</p>
+<ul>
+<li>Thread和Runnable作为基本抽象</li>
+<li>synchronized关键字实现同步</li>
+<li>volatile变量保证可见性</li>
+<li>线程池管理线程生命周期</li>
+</ul>
+<p>随着多核时代到来，这种模型暴露出一些问题：</p>
+<ul>
+<li>线程创建和切换开销大</li>
+<li>系统资源消耗高</li>
+<li>共享内存模型导致并发控制复杂</li>
+</ul>
+<p>Java通过java.util.concurrent包等方式不断改进其并发编程工具箱，Java的并发编程工具箱非常丰富，提供了多种强大的工具来管理和控制并发操作。这些工具的设计和实现都非常精密，适用于复杂的并发场景。</p>
+<ul>
+<li>线程池 (ThreadPoolExecutor)：线程池是一种常用的并发模式，用于管理和复用线程。通过线程池，可以有效地控制线程的数量，避免因线程创建和销毁带来的开销。Java的ThreadPoolExecutor类提供了灵活的配置选项，可以根据应用的需求动态调整线程池的大小。</li>
+<li>阻塞队列 (BlockingQueue)：阻塞队列是一种线程安全的队列，生产者线程可以将任务放入队列，消费者线程可以从队列中取出任务执行。BlockingQueue接口提供了多种实现，如ArrayBlockingQueue、LinkedBlockingQueue和PriorityBlockingQueue，适用于不同的应用场景。</li>
+<li>同步工具 (CountDownLatch, CyclicBarrier, Semaphore)：这些同步工具提供了更细粒度的并发控制。CountDownLatch允许一个或多个线程等待其他线程完成操作；CyclicBarrier允许多个线程相互等待，直到所有线程都到达某个屏障点；Semaphore用于控制同时访问特定资源的线程数量。</li>
+<li>并发集合 (ConcurrentHashMap, CopyOnWriteArrayList)：Java提供了多种线程安全的集合类，如ConcurrentHashMap和CopyOnWriteArrayList，这些集合类在高并发环境下表现优异，能够有效避免数据竞争和死锁问题。</li>
+</ul>
+<p>这些工具的强大之处在于它们的灵活性和可配置性，但同时也带来了复杂性，而且基于线程的根本模型没有改变。使用这些工具需要对并发编程有较深的理解，否则可能会引入难以调试的错误。就像一把重剑，使用得当可以披荆斩棘，使用不当则可能伤及自身。</p>
+<p><strong>Go的轻剑：goroutine与channel</strong></p>
+<p>Go语言从一开始就将并发作为核心特性，它的并发模型简洁而高效，通过goroutine和channel两个核心概念，使得并发编程变得直观和易于理解。</p>
+<ul>
+<li>goroutine：goroutine是Go语言中的轻量级线程，由Go运行时调度和管理。与操作系统线程相比，goroutine的创建和切换开销极小，仅占2KB初始栈空间，可以在一个进程中创建成千上万个goroutine。开发者只需使用go关键字即可启动一个新的goroutine，非常方便。</li>
+<li>channel：channel是goroutine之间通信的管道，支持数据的安全传递。通过channel，goroutine可以发送和接收数据，实现同步和通信。Go语言的channel支持多种操作，如单向通道、带缓冲的通道等，使得并发编程更加灵活。</li>
+<li>CSP并发模型：Go语言的并发模型基于CSP（Communicating Sequential Processes）理论，强调通过消息传递而非共享内存来实现并发。这种模型避免了传统并发编程中常见的数据竞争和死锁问题，使得并发程序更加可靠和易于维护。</li>
+<li>调度器：Go运行时的调度器能够有效地管理goroutine的执行，充分利用多核CPU的计算能力。调度器会根据系统的负载动态调整goroutine的调度策略，确保高性能和低延迟。</li>
+</ul>
+<p>Go的并发模型设计简洁，使得开发者可以专注于业务逻辑，而不需要过多关注并发控制的细节，开发者可以使用同步的思维编写异步代码。这种设计不仅提高了开发效率，还减少了并发编程的复杂性和错误率。Go的并发特性，则像一把细剑。”go”关键字和channel的设计，让并发编程变得简单。可以说，用Go写并发程序，就像写顺序程序一样自然。</p>
+<h2 id="四、结语：和而不同"><a href="#四、结语：和而不同" class="headerlink" title="四、结语：和而不同"></a>四、结语：和而不同</h2><p>写到这里，不禁想起了一个词：”和而不同”。Java和Go的设计哲学迥异，但它们都在自己的领域绽放异彩。正是这些不同的设计哲学，推动着编程语言的进化，也推动着整个软件行业的发展。</p>
+<p>选择Java还是Go？这不是一个非此即彼的问题。关键是要理解它们的设计哲学，在合适的场景选择合适的工具。毕竟，软件开发的终极目标，是解决问题，而不是争论工具的优劣。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2024/10/30/Go%20vs%20Java%E6%B7%B1%E5%85%A5%E5%AF%B9%E6%AF%94%E7%B3%BB%E5%88%97%EF%BC%88%E4%B8%80%EF%BC%89%EF%BC%9A%E8%AF%AD%E8%A8%80%E8%AE%BE%E8%AE%A1%E5%93%B2%E5%AD%A6/" data-id="cm2upc79q0001y0ur22unfbh2" data-title="" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+
+<article id="post-解决Spring-Boot项目集成shiro使用mockmvc测试遇到的问题" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2020/03/11/%E8%A7%A3%E5%86%B3Spring-Boot%E9%A1%B9%E7%9B%AE%E9%9B%86%E6%88%90shiro%E4%BD%BF%E7%94%A8mockmvc%E6%B5%8B%E8%AF%95%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/" class="article-date">
   <time datetime="2020-03-11T04:03:12.000Z" itemprop="datePublished">2020-03-11</time>
@@ -110,10 +613,7 @@
     </footer>
   </div>
   
-</article>
-
-
-  
+</article>  
 
 
 </section>
@@ -124,29 +624,15 @@
 
   
     
-  <div class="widget-wrap">
-    <h3 class="widget-title">Tags</h3>
-    <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/shiro-mockmvc/" rel="tag">shiro mockmvc</a></li></ul>
-    </div>
-  </div>
-
 
   
     
-  <div class="widget-wrap">
-    <h3 class="widget-title">Tag Cloud</h3>
-    <div class="widget tagcloud">
-      <a href="/tags/shiro-mockmvc/" style="font-size: 10px;">shiro mockmvc</a>
-    </div>
-  </div>
-
   
     
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/10/">October 2024</a></li></ul>
     </div>
   </div>
 
@@ -159,7 +645,11 @@
       <ul>
         
           <li>
-            <a href="/2020/03/11/%E8%A7%A3%E5%86%B3Spring-Boot%E9%A1%B9%E7%9B%AE%E9%9B%86%E6%88%90shiro%E4%BD%BF%E7%94%A8mockmvc%E6%B5%8B%E8%AF%95%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/">解决Spring Boot项目集成shiro使用mockmvc测试遇到的问题</a>
+            <a href="/2024/10/30/Go%20vs%20Java%E6%B7%B1%E5%85%A5%E5%AF%B9%E6%AF%94%E7%B3%BB%E5%88%97%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9A%E5%9F%BA%E6%9C%AC%E8%AF%AD%E6%B3%95%E4%B8%8E%E7%B1%BB%E5%9E%8B/">(no title)</a>
+          </li>
+        
+          <li>
+            <a href="/2024/10/30/Go%20vs%20Java%E6%B7%B1%E5%85%A5%E5%AF%B9%E6%AF%94%E7%B3%BB%E5%88%97%EF%BC%88%E4%B8%80%EF%BC%89%EF%BC%9A%E8%AF%AD%E8%A8%80%E8%AE%BE%E8%AE%A1%E5%93%B2%E5%AD%A6/">(no title)</a>
           </li>
         
       </ul>
@@ -174,11 +664,13 @@
   
   <div class="outer">
     <div id="footer-info" class="inner">
-      &copy; 2020 John Doe<br>
-      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+      
+      &copy; 2024 John Doe<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
     </div>
   </div>
 </footer>
+
     </div>
     <nav id="mobile-nav">
   
@@ -189,19 +681,19 @@
 </nav>
     
 
-<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
 
 
   
-<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
-
-  
-<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script src="/fancybox/jquery.fancybox.min.js"></script>
 
 
 
 
 <script src="/js/script.js"></script>
+
 
 
 
