@@ -64,10 +64,808 @@
       <div class="outer">
         <section id="main">
 
+          <article id="post-Go vs Java深入对比系列（四）：并发编程" class="article article-type-post" itemscope itemprop="blogPost">
+            <div class="article-meta">
+              <a href="/2024/06/21/Go%20vs%20Java%E6%B7%B1%E5%85%A5%E5%AF%B9%E6%AF%94%E7%B3%BB%E5%88%97%EF%BC%88%E5%9B%9B%EF%BC%89%EF%BC%9A%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" class="article-date">
+            <time class="dt-published" datetime="2024-06-21T10:14:32.687Z" itemprop="datePublished">2024-06-21</time>
+          </a>
+              
+            </div>
+            <div class="article-inner">
+              <header class="article-header">
+                  
+            
+                <h1 itemprop="name">
+                  <a class="article-title" href="/2024/06/21/Go%20vs%20Java%E6%B7%B1%E5%85%A5%E5%AF%B9%E6%AF%94%E7%B3%BB%E5%88%97%EF%BC%88%E5%9B%9B%EF%BC%89%EF%BC%9A%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/">Go vs Java深入对比系列（四）：并发编程</a>
+                </h1>
+              
+            
+                  </header>
+              
+              <div class="e-content article-entry" itemprop="articleBody">
+                
+                  <p>Go与Java并发编程谁更胜一筹？这就像问火锅和烧烤哪个更好吃一样，还真不是一句话能说清楚的。Go语言诞生之初就将并发作为语言级特性来设计，而Java则是在发展过程中不断强化其并发能力。今天我们就从设计理念、编程模型、内存模型等多个维度，来对这两种语言的并发特性做一次深度对比。</p>
+          <h2 id="一、并发模型"><a href="#一、并发模型" class="headerlink" title="一、并发模型"></a>一、并发模型</h2><h3 id="1-1-Java：基于对象的并发模型"><a href="#1-1-Java：基于对象的并发模型" class="headerlink" title="1.1 Java：基于对象的并发模型"></a>1.1 Java：基于对象的并发模型</h3><p>Java诞生于上世纪90年代，那时候多核处理器还不普及。它的并发模型建立在对象和监视器(Monitor)的概念之上。在Java中，每个对象都可以作为一个监视器，通过synchronized关键字来实现互斥访问：</p>
+          <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SharedCounter</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">volatile</span> <span class="type">long</span> <span class="variable">count</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title function_">increment</span><span class="params">()</span> &#123;</span><br><span class="line">        count++;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="type">long</span> <span class="title function_">getCount</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> count;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+          
+          <p>这种设计源自Smalltalk语言，非常符合面向对象的思维，对象既包含数据，也负责保护这些数据的并发访问。</p>
+          <h3 id="1-2-Go：基于CSP的并发模型"><a href="#1-2-Go：基于CSP的并发模型" class="headerlink" title="1.2 Go：基于CSP的并发模型"></a>1.2 Go：基于CSP的并发模型</h3><p>相比之下，Go语言在设计之初就考虑到了多核时代的并发需求。它没有选择基于共享内存的并发模型，而是采用了通信顺序进程(CSP)理论：</p>
+          <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">producer</span><span class="params">(ch <span class="keyword">chan</span> <span class="type">int</span>)</span></span> &#123;</span><br><span class="line">    <span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="number">5</span>; i++ &#123;</span><br><span class="line">        ch &lt;- i  <span class="comment">// 发送数据</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">consumer</span><span class="params">(ch <span class="keyword">chan</span> <span class="type">int</span>)</span></span> &#123;</span><br><span class="line">    <span class="keyword">for</span> &#123;</span><br><span class="line">        val := &lt;-ch  <span class="comment">// 接收数据  </span></span><br><span class="line">        <span class="comment">// 处理数据</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+          
+          <p>Go的设计哲学是“通过通信来共享内存，而不是通过共享内存来通信”。这句话体现了Go对并发的根本思路。</p>
+          <h3 id="1-3-Java线程调度"><a href="#1-3-Java线程调度" class="headerlink" title="1.3 Java线程调度"></a>1.3 Java线程调度</h3><p>Java线程直接映射到操作系统线程，调度依赖操作系统：</p>
+          <ul>
+          <li>优点：可以充分利用操作系统的调度能力</li>
+          <li>缺点：上下文切换成本高，并发数量受限</li>
+          </ul>
+          <h3 id="1-4-Go运行时调度"><a href="#1-4-Go运行时调度" class="headerlink" title="1.4 Go运行时调度"></a>1.4 Go运行时调度</h3><p>Go实现了自己的调度器(GMP模型)：</p>
+          <ul>
+          <li>G (Goroutine)：协程</li>
+          <li>M (Machine)：工作线程</li>
+          <li>P (Processor)：处理器</li>
+          </ul>
+          <p>调度流程：</p>
+          <ol>
+          <li>G创建后进入P的本地队列或全局队列</li>
+          <li>M绑定P后不断从队列获取G执行</li>
+          <li>当G发生阻塞，M会寻找其他G执行</li>
+          <li>当M阻塞，P会寻找其他M</li>
+          </ol>
+          <p>这种设计带来的优势：</p>
+          <ol>
+          <li>轻量级上下文切换</li>
+          <li>工作窃取式负载均衡</li>
+          <li>自动伸缩的M数量</li>
+          </ol>
+          <h2 id="二、并发单元"><a href="#二、并发单元" class="headerlink" title="二、并发单元"></a>二、并发单元</h2><h3 id="2-1-Java线程与系统线程一对一映射"><a href="#2-1-Java线程与系统线程一对一映射" class="headerlink" title="2.1 Java线程与系统线程一对一映射"></a>2.1 Java线程与系统线程一对一映射</h3><p>Java主要通过线程（Thread）和线程池（ThreadPool）来实现并发。传统的Java线程直接映射到操作系统的线程。这种设计导致：</p>
+          <ol>
+          <li>内存消耗大，默认情况下，每个线程的栈大小为1MB或更多</li>
+          <li>创建和销毁线程的开销较大，创建和销毁线程需要较多的系统资源，频繁创建和销毁线程可能会导致性能问题</li>
+          <li>Java线程的调度是由操作系统负责的，这意味着线程的上下文切换开销大，并且线程数量受系统限制</li>
+          </ol>
+          <p>为了缓解上述问题，Java引入了线程池的概念。线程池可以重用已创建的线程，减少线程创建和销毁的开销，并且可以控制并发线程的数量。</p>
+          <p>启动一个Java线程的示例：</p>
+          <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">new</span> <span class="title class_">Thread</span>(() -&gt; &#123;</span><br><span class="line">    <span class="comment">// 任务代码</span></span><br><span class="line">&#125;).start();</span><br></pre></td></tr></table></figure>
+          <p>一个Java线程池示例：</p>
+          <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">ExecutorService</span> <span class="variable">executor</span> <span class="operator">=</span> Executors.newFixedThreadPool(<span class="number">10</span>);</span><br><span class="line">executor.submit(() -&gt; &#123;</span><br><span class="line">    <span class="comment">// 任务代码</span></span><br><span class="line">&#125;);</span><br><span class="line">executor.shutdown(); </span><br></pre></td></tr></table></figure>
+          
+          <h3 id="2-2-Go协程"><a href="#2-2-Go协程" class="headerlink" title="2.2 Go协程"></a>2.2 Go协程</h3><p>相比之下，Go语言的协程（goroutine）是一种语言级的轻量级线程，由Go运行时而不是操作系统来调度。这带来了几个显著优势：</p>
+          <ol>
+          <li>创建成本极低（仅2KB的初始栈）</li>
+          <li>可以轻松创建上万个协程</li>
+          <li>调度切换成本低</li>
+          </ol>
+          <p>看看启动一个Go协程有多简单：</p>
+          <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="comment">// 任务代码  </span></span><br><span class="line">&#125;()</span><br></pre></td></tr></table></figure>
+          
+          <p>Java vs Go：</p>
+          <table>
+          <thead>
+          <tr>
+          <th>特性</th>
+          <th>Java Thread</th>
+          <th>Go Goroutine</th>
+          </tr>
+          </thead>
+          <tbody><tr>
+          <td>内存占用</td>
+          <td>约1MB</td>
+          <td>约2KB</td>
+          </tr>
+          <tr>
+          <td>创建成本</td>
+          <td>高</td>
+          <td>低</td>
+          </tr>
+          <tr>
+          <td>调度模型</td>
+          <td>操作系统调度</td>
+          <td>Go运行时调度</td>
+          </tr>
+          <tr>
+          <td>上下文切换开销</td>
+          <td>大</td>
+          <td>小</td>
+          </tr>
+          <tr>
+          <td>并发数量级</td>
+          <td>数千</td>
+          <td>数十万</td>
+          </tr>
+          </tbody></table>
+          <h2 id="三、同步原语"><a href="#三、同步原语" class="headerlink" title="三、同步原语"></a>三、同步原语</h2><p>Java的同步原语设计体现了“面向对象””和“功能完备性”的追求。它提供了丰富的API和强大的功能特性，允许开发者根据具体场景进行精细化的控制。比如ReentrantLock不仅提供基本的加锁解锁功能，还支持锁的公平性选择、等待中断、条件变量等高级特性。</p>
+          <p>相比之下，Go的同步原语设计体现了”简洁性”和”实用性”的理念。它提供了最必要的同步机制，并通过简洁的API设计降低使用复杂度。Go更推荐通过channel进行同步通信，互斥锁等同步原语作为补充手段。</p>
+          <p>Java提供了完整的锁体系：</p>
+          <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 互斥锁</span></span><br><span class="line"><span class="type">ReentrantLock</span> <span class="variable">lock</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ReentrantLock</span>();</span><br><span class="line"></span><br><span class="line"><span class="comment">// 读写锁</span></span><br><span class="line"><span class="type">ReadWriteLock</span> <span class="variable">rwLock</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ReentrantReadWriteLock</span>();</span><br><span class="line"></span><br><span class="line"><span class="comment">// 条件变量</span></span><br><span class="line"><span class="type">Condition</span> <span class="variable">condition</span> <span class="operator">=</span> lock.newCondition();</span><br><span class="line"></span><br><span class="line"><span class="comment">// 信号量</span></span><br><span class="line"><span class="type">Semaphore</span> <span class="variable">semaphore</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Semaphore</span>(<span class="number">5</span>);</span><br></pre></td></tr></table></figure>
+          
+          <p>Go则提供了更简洁的同步工具：</p>
+          <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 互斥锁</span></span><br><span class="line"><span class="keyword">var</span> mu sync.Mutex</span><br><span class="line"></span><br><span class="line"><span class="comment">// 读写锁</span></span><br><span class="line"><span class="keyword">var</span> rwmu sync.RWMutex</span><br><span class="line"></span><br><span class="line"><span class="comment">// 条件等待</span></span><br><span class="line"><span class="keyword">var</span> cond sync.Cond</span><br><span class="line"></span><br><span class="line"><span class="comment">// WaitGroup用于等待一组goroutine完成</span></span><br><span class="line"><span class="keyword">var</span> wg sync.WaitGroup</span><br></pre></td></tr></table></figure>
+          
+          <p>Go vs Java，不同场景下的选择：</p>
+          <ol>
+          <li><p>简单的互斥访问</p>
+          <ul>
+          <li>Java: synchronized或ReentrantLock</li>
+          <li>Go: sync.Mutex</li>
+          </ul>
+          </li>
+          <li><p>读多写少场景</p>
+          <ul>
+          <li>Java: ReentrantReadWriteLock</li>
+          <li>Go: sync.RWMutex或channel</li>
+          </ul>
+          </li>
+          <li><p>条件等待场景</p>
+          <ul>
+          <li>Java: Condition</li>
+          <li>Go: channel优先，必要时使用sync.Cond</li>
+          </ul>
+          </li>
+          <li><p>原子操作场景</p>
+          <ul>
+          <li>Java: Atomic类家族</li>
+          <li>Go: atomic包</li>
+          </ul>
+          </li>
+          </ol>
+          <h3 id="3-1-互斥锁的实现机制"><a href="#3-1-互斥锁的实现机制" class="headerlink" title="3.1 互斥锁的实现机制"></a>3.1 互斥锁的实现机制</h3><h4 id="Java实现"><a href="#Java实现" class="headerlink" title="Java实现"></a>Java实现</h4><p>Java的ReentrantLock采用了基于AQS的实现。AQS维护了一个虚拟的CLH队列来管理等待的线程。当锁被占用时，后续请求锁的线程会被包装成Node节点加入队列。这种设计支持了：</p>
+          <ol>
+          <li>可重入性：通过计数器记录重入次数</li>
+          <li>公平性选择：支持公平锁和非公平锁</li>
+          <li>等待可中断：支持响应中断信号</li>
+          </ol>
+          <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Counter</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">ReentrantLock</span> <span class="variable">lock</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ReentrantLock</span>();</span><br><span class="line">    <span class="keyword">private</span> <span class="type">int</span> <span class="variable">count</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">increment</span><span class="params">()</span> &#123;</span><br><span class="line">        lock.lock();</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            count++;</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            lock.unlock();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+          
+          <h4 id="Go实现"><a href="#Go实现" class="headerlink" title="Go实现"></a>Go实现</h4><p>Go的sync.Mutex则采用了更轻量级的实现。它使用两个字段：</p>
+          <ol>
+          <li>state： 表示锁的状态（0表示未锁定）</li>
+          <li>sema： 用于控制等待队列</li>
+          </ol>
+          <p>这种简化的设计带来了更低的内存占用和更快的加锁&#x2F;解锁速度，但功能相对简单。</p>
+          <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> Counter <span class="keyword">struct</span> &#123;</span><br><span class="line">    mu    sync.Mutex</span><br><span class="line">    count <span class="type">int64</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *Counter)</span></span> Increment() &#123;</span><br><span class="line">    c.mu.Lock()</span><br><span class="line">    <span class="keyword">defer</span> c.mu.Unlock()</span><br><span class="line">    c.count++</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+          
+          <p>Go vs Java：</p>
+          <ol>
+          <li>语言级支持：Go通过defer机制优雅处理锁释放</li>
+          <li>功能特性：Java的ReentrantLock支持可重入，而Go的sync.Mutex不支持</li>
+          <li>公平性：Java支持配置公平&#x2F;非公平锁，Go只提供非公平锁</li>
+          <li>锁状态：Java支持查询锁状态，Go不支持</li>
+          </ol>
+          <h3 id="3-2-读写锁"><a href="#3-2-读写锁" class="headerlink" title="3.2 读写锁"></a>3.2 读写锁</h3><h4 id="Java实现-1"><a href="#Java实现-1" class="headerlink" title="Java实现"></a>Java实现</h4><p>Java的ReadWriteLock接口由ReentrantReadWriteLock实现。其核心特性包括：</p>
+          <ol>
+          <li>读写分离：支持多个读操作并发</li>
+          <li>重入支持：同一线程可多次获取读锁或写锁</li>
+          <li>锁降级：支持写锁降级为读锁</li>
+          <li>公平性选择：支持公平和非公平模式</li>
+          </ol>
+          <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Cache</span>&lt;K, V&gt; &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Map&lt;K, V&gt; map = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">ReadWriteLock</span> <span class="variable">rwLock</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ReentrantReadWriteLock</span>();</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">Lock</span> <span class="variable">readLock</span> <span class="operator">=</span> rwLock.readLock();</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">Lock</span> <span class="variable">writeLock</span> <span class="operator">=</span> rwLock.writeLock();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> V <span class="title function_">get</span><span class="params">(K key)</span> &#123;</span><br><span class="line">        readLock.lock();</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> map.get(key);</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            readLock.unlock();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">put</span><span class="params">(K key, V value)</span> &#123;</span><br><span class="line">        writeLock.lock();</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            map.put(key, value);</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            writeLock.unlock();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+          <p>这种实现允许：</p>
+          <ol>
+          <li>读线程并发访问</li>
+          <li>写线程独占访问</li>
+          <li>读写锁可降级，避免数据更新期间产生的竞争</li>
+          </ol>
+          <h4 id="Go实现-1"><a href="#Go实现-1" class="headerlink" title="Go实现"></a>Go实现</h4><p>Go的sync.RWMutex实现更加简单，但有几个特性需要注意：</p>
+          <ol>
+          <li>不支持重入</li>
+          <li>不支持锁升级或降级</li>
+          <li>写锁优先级较高，避免写饥饿</li>
+          </ol>
+          <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> Cache <span class="keyword">struct</span> &#123;</span><br><span class="line">    sync.RWMutex</span><br><span class="line">    data <span class="keyword">map</span>[<span class="type">string</span>]<span class="keyword">interface</span>&#123;&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *Cache)</span></span> Get(key <span class="type">string</span>) <span class="keyword">interface</span>&#123;&#125; &#123;</span><br><span class="line">    c.RLock()</span><br><span class="line">    <span class="keyword">defer</span> c.RUnlock()</span><br><span class="line">    <span class="keyword">return</span> c.data[key]</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *Cache)</span></span> Put(key <span class="type">string</span>, value <span class="keyword">interface</span>&#123;&#125;) &#123;</span><br><span class="line">    c.Lock()</span><br><span class="line">    <span class="keyword">defer</span> c.Unlock()</span><br><span class="line">    c.data[key] = value</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+          
+          <p>Go vs Java：</p>
+          <ol>
+          <li>接口设计：<ul>
+          <li>Java分离读写锁对象</li>
+          <li>Go使用单一RWMutex对象</li>
+          </ul>
+          </li>
+          <li>锁升降级：<ul>
+          <li>Java支持写锁降级为读锁</li>
+          <li>Go不支持锁升降级</li>
+          </ul>
+          </li>
+          <li>性能特点：<ul>
+          <li>Java读写锁有更多开销但功能更丰富</li>
+          <li>Go读写锁实现更轻量级</li>
+          </ul>
+          </li>
+          </ol>
+          <h3 id="3-3条件变量对比"><a href="#3-3条件变量对比" class="headerlink" title="3.3条件变量对比"></a>3.3条件变量对比</h3><h4 id="Java实现-2"><a href="#Java实现-2" class="headerlink" title="Java实现"></a>Java实现</h4><p>Java的Condition基于AQS实现：</p>
+          <ol>
+          <li>每个Condition维护独立的等待队列</li>
+          <li>支持多个条件变量</li>
+          <li>提供丰富的等待&#x2F;通知机制</li>
+          </ol>
+          <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">BoundedQueue</span>&lt;T&gt; &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">Lock</span> <span class="variable">lock</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ReentrantLock</span>();</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">Condition</span> <span class="variable">notFull</span> <span class="operator">=</span> lock.newCondition();</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">Condition</span> <span class="variable">notEmpty</span> <span class="operator">=</span> lock.newCondition();</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Queue&lt;T&gt; queue = <span class="keyword">new</span> <span class="title class_">LinkedList</span>&lt;&gt;();</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">int</span> capacity;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">put</span><span class="params">(T item)</span> <span class="keyword">throws</span> InterruptedException &#123;</span><br><span class="line">        lock.lock();</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">while</span> (queue.size() == capacity) &#123;</span><br><span class="line">                notFull.await();</span><br><span class="line">            &#125;</span><br><span class="line">            queue.offer(item);</span><br><span class="line">            notEmpty.signal();</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            lock.unlock();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> T <span class="title function_">take</span><span class="params">()</span> <span class="keyword">throws</span> InterruptedException &#123;</span><br><span class="line">        lock.lock();</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">while</span> (queue.isEmpty()) &#123;</span><br><span class="line">                notEmpty.await();</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="type">T</span> <span class="variable">item</span> <span class="operator">=</span> queue.poll();</span><br><span class="line">            notFull.signal();</span><br><span class="line">            <span class="keyword">return</span> item;</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            lock.unlock();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+          <h4 id="Go实现-2"><a href="#Go实现-2" class="headerlink" title="Go实现"></a>Go实现</h4><p>Go的sync.Cond：</p>
+          <ol>
+          <li>基于简单的等待队列</li>
+          <li>一个Cond对应一个底层锁</li>
+          <li>提供基本的等待&#x2F;通知功能</li>
+          </ol>
+          <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> BoundedQueue <span class="keyword">struct</span> &#123;</span><br><span class="line">    cond    *sync.Cond</span><br><span class="line">    queue   []<span class="keyword">interface</span>&#123;&#125;</span><br><span class="line">    capacity <span class="type">int</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">NewBoundedQueue</span><span class="params">(capacity <span class="type">int</span>)</span></span> *BoundedQueue &#123;</span><br><span class="line">    <span class="keyword">return</span> &amp;BoundedQueue&#123;</span><br><span class="line">        cond:     sync.NewCond(&amp;sync.Mutex&#123;&#125;),</span><br><span class="line">        capacity: capacity,</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(q *BoundedQueue)</span></span> Put(item <span class="keyword">interface</span>&#123;&#125;) &#123;</span><br><span class="line">    q.cond.L.Lock()</span><br><span class="line">    <span class="keyword">defer</span> q.cond.L.Unlock()</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span> <span class="built_in">len</span>(q.queue) == q.capacity &#123;</span><br><span class="line">        q.cond.Wait()</span><br><span class="line">    &#125;</span><br><span class="line">    q.queue = <span class="built_in">append</span>(q.queue, item)</span><br><span class="line">    q.cond.Signal()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(q *BoundedQueue)</span></span> Take() <span class="keyword">interface</span>&#123;&#125; &#123;</span><br><span class="line">    q.cond.L.Lock()</span><br><span class="line">    <span class="keyword">defer</span> q.cond.L.Unlock()</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span> <span class="built_in">len</span>(q.queue) == <span class="number">0</span> &#123;</span><br><span class="line">        q.cond.Wait()</span><br><span class="line">    &#125;</span><br><span class="line">    item := q.queue[<span class="number">0</span>]</span><br><span class="line">    q.queue = q.queue[<span class="number">1</span>:]</span><br><span class="line">    q.cond.Signal()</span><br><span class="line">    <span class="keyword">return</span> item</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+          
+          <p>Go vs Java：</p>
+          <ol>
+          <li>条件变量创建：<ul>
+          <li>Java支持一个锁创建多个条件变量</li>
+          <li>Go一个sync.Cond绑定一个锁</li>
+          </ul>
+          </li>
+          <li>通知机制：<ul>
+          <li>Java提供signal()和signalAll()</li>
+          <li>Go提供Signal()和Broadcast()</li>
+          </ul>
+          </li>
+          <li>使用方式：<ul>
+          <li>Java显式管理Lock和Condition</li>
+          <li>Go通过sync.Cond封装底层锁</li>
+          </ul>
+          </li>
+          </ol>
+          <h3 id="3-4原子操作对比"><a href="#3-4原子操作对比" class="headerlink" title="3.4原子操作对比"></a>3.4原子操作对比</h3><h4 id="Java实现-3"><a href="#Java实现-3" class="headerlink" title="Java实现"></a>Java实现</h4><p>Java的原子类设计体现了面向对象的思想，提供了一系列完整的原子类：</p>
+          <ul>
+          <li>基本类型：AtomicInteger、AtomicLong、AtomicBoolean</li>
+          <li>引用类型：AtomicReference、AtomicStampedReference</li>
+          <li>数组类型：AtomicIntegerArray、AtomicLongArray</li>
+          <li>属性更新器：AtomicIntegerFieldUpdater、AtomicReferenceFieldUpdater</li>
+          </ul>
+          <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">AtomicCounter</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">AtomicLong</span> <span class="variable">value</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">AtomicLong</span>(<span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="type">long</span> <span class="title function_">increment</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> value.incrementAndGet();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="type">long</span> <span class="title function_">decrement</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> value.decrementAndGet();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">add</span><span class="params">(<span class="type">long</span> delta)</span> &#123;</span><br><span class="line">        value.addAndGet(delta);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="type">long</span> <span class="title function_">get</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> value.get();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+          
+          <h4 id="Go实现-3"><a href="#Go实现-3" class="headerlink" title="Go实现"></a>Go实现</h4><p>Go则采用了更加功能性的设计思路，通过atomic包提供基础的原子操作：</p>
+          <ul>
+          <li>基本数值类型：Int32、Int64、Uint32、Uint64</li>
+          <li>指针操作：Pointer</li>
+          <li>值类型：Value（通用原子类型）</li>
+          </ul>
+          <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> AtomicCounter <span class="keyword">struct</span> &#123;</span><br><span class="line">    value atomic.Int64</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *AtomicCounter)</span></span> Increment() <span class="type">int64</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> c.value.Add(<span class="number">1</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *AtomicCounter)</span></span> Decrement() <span class="type">int64</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> c.value.Add(<span class="number">-1</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *AtomicCounter)</span></span> Add(delta <span class="type">int64</span>) <span class="type">int64</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> c.value.Add(delta)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(c *AtomicCounter)</span></span> Get() <span class="type">int64</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> c.value.Load()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+          
+          <p>Go vs Java：</p>
+          <ol>
+          <li>API设计：<ul>
+          <li>Java提供丰富的原子类型和操作</li>
+          <li>Go提供基础的原子操作包</li>
+          </ul>
+          </li>
+          <li>功能支持：<ul>
+          <li>Java支持CAS操作链和复合操作</li>
+          <li>Go主要支持基本的原子操作</li>
+          </ul>
+          </li>
+          <li>性能特性：<ul>
+          <li>Java原子类实现了更多优化</li>
+          <li>Go原子操作更接近底层</li>
+          </ul>
+          </li>
+          </ol>
+          <h2 id="四、内存模型"><a href="#四、内存模型" class="headerlink" title="四、内存模型"></a>四、内存模型</h2><h3 id="4-1-Java内存模型-JMM"><a href="#4-1-Java内存模型-JMM" class="headerlink" title="4.1 Java内存模型(JMM)"></a>4.1 Java内存模型(JMM)</h3><p>Java内存模型定义了一套复杂的规则，来保证多线程程序的可见性、有序性和原子性：</p>
+          <ol>
+          <li>volatile关键字保证可见性</li>
+          <li>synchronized保证原子性</li>
+          <li>happens-before规则保证有序性</li>
+          </ol>
+          <p>这需要开发者对内存屏障、重排序等概念有深入理解：</p>
+          <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">VolatileExample</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">volatile</span> <span class="type">boolean</span> <span class="variable">flag</span> <span class="operator">=</span> <span class="literal">false</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">writer</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="comment">// 写入volatile变量会强制将缓存写回主存</span></span><br><span class="line">        flag = <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">reader</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="comment">// 读取volatile变量会强制从主存刷新</span></span><br><span class="line">        <span class="keyword">while</span> (!flag) &#123;</span><br><span class="line">            <span class="comment">// busy wait</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+          
+          <h3 id="4-2-Go内存模型"><a href="#4-2-Go内存模型" class="headerlink" title="4.2 Go内存模型"></a>4.2 Go内存模型</h3><p>Go的内存模型相对简单，主要基于happens-before原则：</p>
+          <ol>
+          <li>channel操作隐含的happens-before关系</li>
+          <li>sync.Mutex等同步原语的happens-before保证</li>
+          <li>无需显式的内存屏障</li>
+          </ol>
+          <p>看一个Go的例子：</p>
+          <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> a <span class="type">string</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">hello</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123; a = <span class="string">&quot;hello&quot;</span> &#125;()</span><br><span class="line">    <span class="built_in">print</span>(a)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+          
+          <p>这段代码是有数据竞争的。要修复它，我们需要用channel来建立happens-before关系：</p>
+          <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> a <span class="type">string</span></span><br><span class="line">ch ：= <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">struct</span>&#123;&#125;)</span><br><span class="line"></span><br><span class="line"><span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123; </span><br><span class="line">    a = <span class="string">&quot;hello&quot;</span></span><br><span class="line">    ch &lt;- <span class="keyword">struct</span>&#123;&#125;&#123;&#125; </span><br><span class="line">&#125;()</span><br><span class="line"></span><br><span class="line">&lt;-ch  <span class="comment">// 建立happens-before关系</span></span><br><span class="line"><span class="built_in">print</span>(a)</span><br></pre></td></tr></table></figure>
+          
+          <h3 id="4-3-Java的坑"><a href="#4-3-Java的坑" class="headerlink" title="4.3 Java的坑"></a>4.3 Java的坑</h3><p>在学习Java多线程开发时，常会学习这样一个经典案例：</p>
+          <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">LateInitialization</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> Resource resource;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> Resource <span class="title function_">getInstance</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (resource == <span class="literal">null</span>) &#123;  <span class="comment">// 第一次检查</span></span><br><span class="line">            <span class="keyword">synchronized</span> (LateInitialization.class) &#123;</span><br><span class="line">                <span class="keyword">if</span> (resource == <span class="literal">null</span>) &#123;  <span class="comment">// 第二次检查</span></span><br><span class="line">                    resource = <span class="keyword">new</span> <span class="title class_">Resource</span>();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> resource;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+          
+          <p>这段看似正确的双重检查锁定(Double-Checked Locking)代码实际上是有问题的。因为Resource对象的构造过程可能被重排序，导致其他线程看到一个尚未完全初始化的对象。要修复这个问题，我们需要将resource声明为volatile：</p>
+          <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">volatile</span> Resource resource;</span><br></pre></td></tr></table></figure>
+          
+          <p>而在Go中，类似的场景就简单得多：</p>
+          <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> once sync.Once</span><br><span class="line"><span class="keyword">var</span> resource *Resource</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">getInstance</span><span class="params">()</span></span> *Resource &#123;</span><br><span class="line">    once.Do(<span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">        resource = &amp;Resource&#123;&#125;</span><br><span class="line">    &#125;)</span><br><span class="line">    <span class="keyword">return</span> resource</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+          
+          <p>Go通过sync.Once提供了一个简洁且线程安全的解决方案。</p>
+          <h2 id="五、错误处理"><a href="#五、错误处理" class="headerlink" title="五、错误处理"></a>五、错误处理</h2><h3 id="5-1-Java的异常传播"><a href="#5-1-Java的异常传播" class="headerlink" title="5.1 Java的异常传播"></a>5.1 Java的异常传播</h3><p>在Java的并发编程中，异常处理是一个比较棘手的问题。线程中抛出的异常如果没有被捕获，整个程序可能不会收到任何通知：</p>
+          <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ExceptionInThread</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        <span class="type">Thread</span> <span class="variable">t</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Thread</span>(() -&gt; &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">RuntimeException</span>(<span class="string">&quot;Oops!&quot;</span>);</span><br><span class="line">        &#125;);</span><br><span class="line">        t.start();</span><br><span class="line">        System.out.println(<span class="string">&quot;Main thread continues...&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+          
+          <p>为了处理这个问题，我们通常需要设置UncaughtExceptionHandler：</p>
+          <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">t.setUncaughtExceptionHandler((thread, e) -&gt; &#123;</span><br><span class="line">    System.err.println(<span class="string">&quot;Thread &quot;</span> + thread.getName() + <span class="string">&quot; threw &quot;</span> + e);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+          
+          <h3 id="5-2-Go的错误处理"><a href="#5-2-Go的错误处理" class="headerlink" title="5.2 Go的错误处理"></a>5.2 Go的错误处理</h3><p>Go采用了不同的方式。首先，panic在一个goroutine中发生时，如果没有被recover，整个程序会退出：</p>
+          <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">        <span class="built_in">panic</span>(<span class="string">&quot;Oops!&quot;</span>)</span><br><span class="line">    &#125;()</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 主goroutine sleep一段时间，等待panic发生</span></span><br><span class="line">    time.Sleep(time.Second)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+          
+          <p>这种设计强制我们必须认真对待每个goroutine中可能发生的panic。通常的做法是在每个goroutine的顶层函数中使用defer和recover：</p>
+          <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">defer</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">        <span class="keyword">if</span> r := <span class="built_in">recover</span>(); r != <span class="literal">nil</span> &#123;</span><br><span class="line">            log.Printf(<span class="string">&quot;Recovered from panic: %v&quot;</span>, r)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;()</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 可能panic的代码</span></span><br><span class="line">&#125;()</span><br></pre></td></tr></table></figure>
+          
+                
+              </div>
+              <footer class="article-footer">
+                <a data-url="http://yoursite.com/2024/06/21/Go%20vs%20Java%E6%B7%B1%E5%85%A5%E5%AF%B9%E6%AF%94%E7%B3%BB%E5%88%97%EF%BC%88%E5%9B%9B%EF%BC%89%EF%BC%9A%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" data-id="cm2x6va900003s8ur3pel2r6i" data-title="" class="article-share-link"><span class="fa fa-share">Share</span></a>
+                
+                
+                
+              </footer>
+            </div>
+            
+          </article>
+
+          <article id="post-Go vs Java深入对比系列（三）：错误处理" class="article article-type-post" itemscope itemprop="blogPost">
+            <div class="article-meta">
+              <a href="/2024/6/19/Go%20vs%20Java%E6%B7%B1%E5%85%A5%E5%AF%B9%E6%AF%94%E7%B3%BB%E5%88%97%EF%BC%88%E4%B8%89%EF%BC%89%EF%BC%9A%E9%94%99%E8%AF%AF%E5%A4%84%E7%90%86/" class="article-date">
+            <time class="dt-published" datetime="2024-6-19T11:44:12.685Z" itemprop="datePublished">2024-6-19</time>
+          </a>
+              
+            </div>
+            <div class="article-inner">
+          
+              <header class="article-header">
+                  
+            
+                <h1 itemprop="name">
+                  <a class="article-title" href="/2024/6/19/Go%20vs%20Java%E6%B7%B1%E5%85%A5%E5%AF%B9%E6%AF%94%E7%B3%BB%E5%88%97%EF%BC%88%E4%B8%89%EF%BC%89%EF%BC%9A%E9%94%99%E8%AF%AF%E5%A4%84%E7%90%86/">Go vs Java深入对比系列（三）：错误处理</a>
+                </h1>
+              
+            
+                  </header>
+              
+              
+              <div class="e-content article-entry" itemprop="articleBody">
+                
+                  <p>作为习惯了Java开发try-catch抛异常的程序员，我第一次看到Go代码中大量的<code>if err != nil</code>判断时，说实话是有点懵的。Go语言的错误处理可以说是简单粗暴，函数通过返回error接口类型的值来表示错误。你可能会说，这不就是C语言时代那种返回错误码的方式吗？但实际上Go的error机制要比简单的错误码优雅得多。让我们来看一个典型的例子:</p>
+          <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">findUser</span><span class="params">(id <span class="type">string</span>)</span></span> (*User, <span class="type">error</span>) &#123;</span><br><span class="line">    <span class="keyword">if</span> err := validateId(id); err != <span class="literal">nil</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">nil</span>, fmt.Errorf(<span class="string">&quot;invalid id %s: %w&quot;</span>, id, err)</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    db, err := getConnection()</span><br><span class="line">    <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">nil</span>, fmt.Errorf(<span class="string">&quot;failed to connect db: %w&quot;</span>, err)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">defer</span> db.Close()  <span class="comment">// 资源清理更加优雅</span></span><br><span class="line">    </span><br><span class="line">    user, err := queryUser(db, id)</span><br><span class="line">    <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">nil</span>, fmt.Errorf(<span class="string">&quot;failed to query user: %w&quot;</span>, err)</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> user == <span class="literal">nil</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">nil</span>, &amp;UserNotFoundError&#123;ID: id&#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> user, <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+          
+          <p>我们可以看到几个关键点：</p>
+          <ol>
+          <li>error是一个类型，错误是值，可以像处理其他值一样处理错误</li>
+          <li>显式的错误处理，每个可能出错的调用都必须显式检查错误</li>
+          <li>defer机制处理资源清理</li>
+          </ol>
+          <h2 id="Go的错误处理设计哲学"><a href="#Go的错误处理设计哲学" class="headerlink" title="Go的错误处理设计哲学"></a>Go的错误处理设计哲学</h2><h3 id="显式优于隐式"><a href="#显式优于隐式" class="headerlink" title="显式优于隐式"></a>显式优于隐式</h3><p>Go团队在设计错误处理机制时，是有着深刻思考的。他们明确选择了两个核心原则：</p>
+          <ol>
+          <li>使用显式的错误结果</li>
+          <li>使用显式的错误检查</li>
+          </ol>
+          <p>为什么要这么做？让我们看看Java中的一个常见场景：</p>
+          <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> User <span class="title function_">findUser</span><span class="params">(String id)</span> &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        validateInput(id);       <span class="comment">// 可能抛出ValidationException</span></span><br><span class="line">        connectDatabase();       <span class="comment">// 可能抛出SQLException</span></span><br><span class="line">        queryUser(id);          <span class="comment">// 可能抛出多种异常</span></span><br><span class="line">        processResult();        <span class="comment">// 可能抛出自定义异常</span></span><br><span class="line">        <span class="keyword">return</span> user;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        <span class="comment">// 这里可能捕获了意料之外的异常</span></span><br><span class="line">        <span class="comment">// 你甚至不知道是哪一行代码抛出的</span></span><br><span class="line">        logger.error(<span class="string">&quot;Something went wrong&quot;</span>, e);</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">ServiceException</span>(<span class="string">&quot;Failed to find user&quot;</span>, e);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+          
+          <p>看似简洁的try-catch块隐藏了太多信息：</p>
+          <ul>
+          <li>哪些操作可能失败？</li>
+          <li>失败的原因是什么？</li>
+          <li>错误是在哪一步发生的？</li>
+          </ul>
+          <p>而Go的方式则清晰得多，看起来代码确实变长了，但每一个可能的错误点都清晰可见，这正是Go的显式优于隐式理念的体现。</p>
+          <h3 id="Errors-are-values"><a href="#Errors-are-values" class="headerlink" title="Errors are values"></a>Errors are values</h3><p>Rob Pike说过：”Errors are values”（错误是值）。这句话的深意在于：既然错误在Go中是一个普通的值，那么我们就可以像对待其他值一样去编程处理它。</p>
+          <p>让我们看一个优雅的错误处理示例：</p>
+          <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> errWriter <span class="keyword">struct</span> &#123;</span><br><span class="line">    w   io.Writer</span><br><span class="line">    err <span class="type">error</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(ew *errWriter)</span></span> write(buf []<span class="type">byte</span>) &#123;</span><br><span class="line">    <span class="keyword">if</span> ew.err != <span class="literal">nil</span> &#123;</span><br><span class="line">        <span class="keyword">return</span>  <span class="comment">// 已经有错误了，后续操作都是无用功</span></span><br><span class="line">    &#125;</span><br><span class="line">    _, ew.err = ew.w.Write(buf)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 使用示例</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">writeData</span><span class="params">(w io.Writer, data []<span class="type">byte</span>)</span></span> <span class="type">error</span> &#123;</span><br><span class="line">    ew := &amp;errWriter&#123;w: w&#125;</span><br><span class="line">    ew.write(header)</span><br><span class="line">    ew.write(data)</span><br><span class="line">    ew.write(footer)</span><br><span class="line">    <span class="keyword">return</span> ew.err</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+          
+          <h2 id="为什么Go要选择这种方式"><a href="#为什么Go要选择这种方式" class="headerlink" title="为什么Go要选择这种方式?"></a>为什么Go要选择这种方式?</h2><p>很多人第一次看到Go的错误处理方式时都会觉得很繁琐。但这种设计其实反映了Go语言显式优于隐式的哲学。让我们来分析一下Go这种设计的优势：</p>
+          <h4 id="1-错误处理更可控"><a href="#1-错误处理更可控" class="headerlink" title="1. 错误处理更可控"></a>1. 错误处理更可控</h4><p>在Java中，异常可能在任何地方抛出，你必须仔细阅读文档才能知道需要处理哪些异常。而在Go中，错误是函数签名的一部分，你必须显式处理它：</p>
+          <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Go的方式 - 错误是显式的</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">processTask</span><span class="params">()</span></span> <span class="type">error</span> &#123;</span><br><span class="line">    <span class="comment">// 错误处理是强制的</span></span><br><span class="line">    result, err := doSomething()</span><br><span class="line">    <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> err</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Java的方式 - 异常是隐式的</span></span><br><span class="line">public void processTask() &#123;</span><br><span class="line">    <span class="comment">// 异常可能在任何地方抛出</span></span><br><span class="line">    <span class="comment">// 你需要查看文档才能知道</span></span><br><span class="line">    doSomething();  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+          
+          <h4 id="2-避免了异常滥用"><a href="#2-避免了异常滥用" class="headerlink" title="2. 避免了异常滥用"></a>2. 避免了异常滥用</h4><p>Java世界中一个常见的反模式是使用异常来进行流程控制。比如：</p>
+          <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> User <span class="title function_">findUser</span><span class="params">(String id)</span> &#123;</span><br><span class="line">    <span class="type">User</span> <span class="variable">user</span> <span class="operator">=</span> userCache.get(id);</span><br><span class="line">    <span class="keyword">if</span> (user == <span class="literal">null</span>) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">UserNotFoundException</span>(id);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> user;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 调用代码</span></span><br><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="type">User</span> <span class="variable">user</span> <span class="operator">=</span> findUser(<span class="string">&quot;123&quot;</span>);</span><br><span class="line">    process(user);</span><br><span class="line">&#125; <span class="keyword">catch</span> (UserNotFoundException e) &#123;</span><br><span class="line">    <span class="comment">// 这里其实是正常的业务逻辑</span></span><br><span class="line">    createNewUser(<span class="string">&quot;123&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+          
+          <p>而在Go中，这种场景会更自然地使用多返回值：</p>
+          <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">findUser</span><span class="params">(id <span class="type">string</span>)</span></span> (*User, <span class="type">bool</span>) &#123;</span><br><span class="line">    user, exists := userCache[id]</span><br><span class="line">    <span class="keyword">return</span> user, exists</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 调用代码</span></span><br><span class="line">user, exists := findUser(<span class="string">&quot;123&quot;</span>)</span><br><span class="line"><span class="keyword">if</span> !exists &#123;</span><br><span class="line">    <span class="comment">// 清晰的业务逻辑</span></span><br><span class="line">    createNewUser(<span class="string">&quot;123&quot;</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+          
+          <h4 id="3-性能考虑"><a href="#3-性能考虑" class="headerlink" title="3. 性能考虑"></a>3. 性能考虑</h4><p>异常处理涉及调用栈的创建与回溯，这在性能上是有代价的。Go的错误处理则是普通的值传递，开销可控。</p>
+          <h2 id="什么时候应该使用panic"><a href="#什么时候应该使用panic" class="headerlink" title="什么时候应该使用panic?"></a>什么时候应该使用panic?</h2><p>虽然Go提倡使用error返回值来处理错误，但它也提供了panic机制。那么什么时候应该使用panic呢？</p>
+          <p>一般来说，panic应该用于：</p>
+          <ol>
+          <li>真正的异常情况 - 程序无法继续运行的致命错误</li>
+          <li>程序初始化阶段 - 比如配置错误导致程序无法启动</li>
+          <li>开发阶段的快速失败 - 帮助发现bug</li>
+          </ol>
+          <p>让我们看一个例子：</p>
+          <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">initDatabase</span><span class="params">(config *Config)</span></span> &#123;</span><br><span class="line">    <span class="keyword">if</span> config.DBHost == <span class="string">&quot;&quot;</span> &#123;</span><br><span class="line">        <span class="comment">// 这是合理的panic使用场景 - 程序无法继续运行</span></span><br><span class="line">        <span class="built_in">panic</span>(<span class="string">&quot;database host must be configured&quot;</span>)</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 普通错误应该返回error</span></span><br><span class="line">    db, err := sql.Open(<span class="string">&quot;postgres&quot;</span>, config.DBHost)</span><br><span class="line">    <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">        <span class="comment">// 不应该panic</span></span><br><span class="line">        <span class="keyword">return</span> fmt.Errorf(<span class="string">&quot;failed to connect to database: %v&quot;</span>, err)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+          
+          <p>panic应该用于真正的”异常”情况：</p>
+          <ol>
+          <li><p><strong>程序的初始化阶段</strong>：</p>
+          <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">MustInitConfig</span><span class="params">()</span></span> *Config &#123;</span><br><span class="line">    config, err := LoadConfig()</span><br><span class="line">    <span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">        <span class="built_in">panic</span>(<span class="string">&quot;failed to load critical configuration&quot;</span>)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> config</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+          </li>
+          <li><p><strong>不可恢复的错误</strong>：</p>
+          <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">ProcessCriticalData</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">if</span> atomic.LoadInt32(&amp;destroyed) == <span class="number">1</span> &#123;</span><br><span class="line">        <span class="built_in">panic</span>(<span class="string">&quot;system is in destroyed state&quot;</span>)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// ... </span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+          </ol>
+          <h2 id="更优的Go错误处理方式"><a href="#更优的Go错误处理方式" class="headerlink" title="更优的Go错误处理方式"></a>更优的Go错误处理方式</h2><p>在Go语言的演进过程中，error传递的信息太少一直是被诟病的一点。使用官方的 error 库，我们只能打印一条简单的错误信息，而没有更多的信息辅助快速定位错误。不过在Go语言我们不是只有一种选择。</p>
+          <ol>
+          <li>错误包装<br>Go语言的错误处理机制一直在随着版本的迭代而不断改进，尤其是在Go 1.13版本中引入了错误包装功能，这极大地增强了错误处理的能力。自Go 1.13起，<code>fmt.Errorf</code> 支持使用 <code>%w</code> 格式化动词来包装错误。这意味着你可以在新的错误信息中包含一个旧的错误，从而保留错误链的上下文。这对于诊断问题非常有用，因为它可以帮助开发者追踪错误的起源。</li>
+          </ol>
+          <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">err := someFunction()</span><br><span class="line"><span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> fmt.Errorf(<span class="string">&quot;failed to do something: %w&quot;</span>, err)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+          
+          <p>随着错误包装的引入，Go 1.13 同时增加了 <code>errors.Is</code> 和 <code>errors.As</code> 函数，用于检查错误链中是否存在特定的错误或类型。这使得错误处理更加灵活，可以更容易地识别和处理特定类型的错误。</p>
+          <ul>
+          <li><code>errors.Is</code> 用于判断一个错误链中是否包含某个特定的错误。</li>
+          <li><code>errors.As</code> 用于判断一个错误链中是否包含某个特定类型的错误，并将其转换为目标类型。</li>
+          </ul>
+          <p>Go 1.20在原有Go 1.13的errors API上进行新增和修改，支持了一个错误可以封装多个错误的特性。</p>
+          <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line"> err1 := errors.New(<span class="string">&quot;err1&quot;</span>)</span><br><span class="line"> err2 := errors.New(<span class="string">&quot;err2&quot;</span>)</span><br><span class="line"> err := errors.Join(err1, err2)</span><br><span class="line"> fmt.Println(err)</span><br><span class="line"> <span class="keyword">if</span> errors.Is(err, err1) &#123;</span><br><span class="line">  fmt.Println(<span class="string">&quot;err is err1&quot;</span>)</span><br><span class="line"> &#125;</span><br><span class="line"> <span class="keyword">if</span> errors.Is(err, err2) &#123;</span><br><span class="line">  fmt.Println(<span class="string">&quot;err is err2&quot;</span>)</span><br><span class="line"> &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+          
+          <ol start="2">
+          <li>使用 pkg&#x2F;errors 而不是官方 error 库</li>
+          </ol>
+          <p><code>pkg/errors</code> 库提供了比标准库更强大的错误处理功能。使用 pkg&#x2F;errors，我们不仅能传递出标准库 error 的错误信息，还能传递出抛出 error 的堆栈信息。这样我们能在错误出现的时候获取更多的错误信息，更快地定位问题。</p>
+          <h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>Go的错误处理机制乍看简单，实则暗藏玄机。它反映了Go语言简单性、显式性和务实性的设计哲学。虽然和Java的异常处理相比显得更加朴素，但恰恰是这种朴素带来了更好的可控性和可预测性。就像Unix哲学所说:”Keep it simple, stupid”。当然，没有完美的解决方案，只有最适合的方案。关键是要理解这些设计背后的思想，在实际项目中灵活运用。</p>
+          
+                
+              </div>
+              <footer class="article-footer">
+                <a data-url="http://yoursite.com/2024/6/19/Go%20vs%20Java%E6%B7%B1%E5%85%A5%E5%AF%B9%E6%AF%94%E7%B3%BB%E5%88%97%EF%BC%88%E4%B8%89%EF%BC%89%EF%BC%9A%E9%94%99%E8%AF%AF%E5%A4%84%E7%90%86/" data-id="cm2x6va8y0001s8urfmzc55fn" data-title="" class="article-share-link"><span class="fa fa-share">Share</span></a>
+                
+                
+                
+              </footer>
+            </div>
+            
+          </article>
+
+          <article id="post-Go vs Java深入对比系列（二）：类型系统" class="article article-type-post" itemscope itemprop="blogPost">
+            <div class="article-meta">
+              <a href="/2024/06/10/Go%20vs%20Java%E6%B7%B1%E5%85%A5%E5%AF%B9%E6%AF%94%E7%B3%BB%E5%88%97%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9A%E7%B1%BB%E5%9E%8B%E7%B3%BB%E7%BB%9F/" class="article-date">
+            <time class="dt-published" datetime="2024-06-10T03:23:32.701Z" itemprop="datePublished">2024-06-10</time>
+          </a>
+              
+            </div>
+            <div class="article-inner">
+          
+              <header class="article-header">
+                  
+            
+                <h1 itemprop="name">
+                  <a class="article-title" href="/2024/06/10/Go%20vs%20Java%E6%B7%B1%E5%85%A5%E5%AF%B9%E6%AF%94%E7%B3%BB%E5%88%97%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9A%E7%B1%BB%E5%9E%8B%E7%B3%BB%E7%BB%9F/">Go vs Java深入对比系列（二）：类型系统</a>
+                </h1>
+              
+            
+                  </header>
+              
+              
+              <div class="e-content article-entry" itemprop="articleBody">
+                
+                  <h2 id="一、-变量声明方式"><a href="#一、-变量声明方式" class="headerlink" title="一、 变量声明方式"></a>一、 变量声明方式</h2><p>Go语言提供了多种变量声明方式：</p>
+          <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 标准声明，类型在变量名字后面，末尾不需要加分号</span></span><br><span class="line"><span class="keyword">var</span> a <span class="type">int</span></span><br><span class="line"><span class="keyword">var</span> a <span class="type">int</span> = <span class="number">10</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 短变量声明（只能在函数内部使用），这种声明方式类似Python，但与Python不同的是，go是静态语言，由go编译器进行自动类型推导</span></span><br><span class="line">a := <span class="number">10</span> </span><br><span class="line"></span><br><span class="line"><span class="comment">// 批量声明</span></span><br><span class="line"><span class="keyword">var</span> (</span><br><span class="line">    a <span class="type">int</span></span><br><span class="line">    b <span class="type">string</span></span><br><span class="line">    c <span class="type">bool</span></span><br><span class="line">)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+          
+          <p>Java的变量声明则相对严格：</p>
+          <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 类型声明必须指定类型，并且以分号结束</span></span><br><span class="line">String name;</span><br><span class="line"><span class="type">int</span> age;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 声明并初始化</span></span><br><span class="line"><span class="type">String</span> <span class="variable">name</span> <span class="operator">=</span> <span class="string">&quot;Tony&quot;</span>;</span><br><span class="line"><span class="type">int</span> <span class="variable">age</span> <span class="operator">=</span> <span class="number">25</span>;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+          
+          <p>这种差异背后体现了两种语言对“显式”和“隐式”的不同态度。Go语言通过变量声明的多样性，试图在显式性和便利性之间找到平衡：</p>
+          <ul>
+          <li><code>:=</code>短变量声明让代码更简洁，但仅限于函数内部使用，避免了全局作用域的隐式行为</li>
+          <li>批量声明使代码更有组织性，特别是在声明相关变量时</li>
+          <li><code>var</code>关键字明确告诉代码阅读者“这是一个变量声明”</li>
+          </ul>
+          <p>Go的一个重要特性是其”零值”机制。任何变量在声明后都会获得一个可用的”零值”：</p>
+          <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Go的变量声明会自动初始化为零值，需要注意的是数值类型的零值为 0 ，字符串的零值为 &quot;&quot; ，布尔的零值为false ， 指针的零值为 nil 。</span></span><br><span class="line"><span class="keyword">var</span> s <span class="type">string</span>     <span class="comment">// s = &quot;&quot;</span></span><br><span class="line"><span class="keyword">var</span> i <span class="type">int</span>        <span class="comment">// i = 0</span></span><br><span class="line"><span class="keyword">var</span> p *<span class="type">int</span>       <span class="comment">// p = nil</span></span><br><span class="line"><span class="keyword">var</span> m <span class="keyword">map</span>[<span class="type">string</span>]<span class="type">int</span>  <span class="comment">// m = nil</span></span><br><span class="line"><span class="keyword">var</span> slice []<span class="type">int</span>      <span class="comment">// slice = nil</span></span><br></pre></td></tr></table></figure>
+          <p>这是一个深思熟虑的设计。通过保证每个变量都有一个合理的初始状态，Go大大降低了程序中未初始化变量导致的错误风险。</p>
+          <p>相比之下，Java的处理则更为谨慎：</p>
+          <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Example</span> &#123;</span><br><span class="line">    <span class="type">int</span> i;          <span class="comment">// 类字段：会自动初始化为0</span></span><br><span class="line">    String s;       <span class="comment">// 类字段：会自动初始化为null</span></span><br><span class="line">    </span><br><span class="line">    <span class="keyword">void</span> <span class="title function_">method</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="type">int</span> j;      <span class="comment">// 局部变量：必须显式初始化后才能使用</span></span><br><span class="line">        String str; <span class="comment">// 局部变量：必须显式初始化后才能使用</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+          
+          <p>Java区分了成员变量和局部变量的处理方式，如果编译器确认一个局部变量在使用之前可能没有被初始化，编译器将报错。这增加了开发者的心智负担，但也强制开发者必须思考变量的初始化问题。</p>
+          <h2 id="二、-类型系统"><a href="#二、-类型系统" class="headerlink" title="二、 类型系统"></a>二、 类型系统</h2><p>尽管Go和Java都是静态类型语言，它们在数据类型的设计和使用上还是有一些区别：<br>Go语言和Java一样，都提供了一些原生的数据类型，包括:</p>
+          <table>
+          <thead>
+          <tr>
+          <th>Go</th>
+          <th>Java</th>
+          </tr>
+          </thead>
+          <tbody><tr>
+          <td>bool</td>
+          <td>boolean</td>
+          </tr>
+          <tr>
+          <td>int8， int16， int32， int64</td>
+          <td>byte， short， int， long</td>
+          </tr>
+          <tr>
+          <td>uint8， uint16， uint32， uint64</td>
+          <td>无</td>
+          </tr>
+          <tr>
+          <td>float32， float64</td>
+          <td>float， double</td>
+          </tr>
+          <tr>
+          <td>complex64， complex128</td>
+          <td>无</td>
+          </tr>
+          <tr>
+          <td>string</td>
+          <td>String</td>
+          </tr>
+          </tbody></table>
+          <p>可以看到，尽管有些类型的名字不太一样，但基本覆盖了布尔型、整型、浮点型这些常见的类型。不过也有几点区别:</p>
+          <ul>
+          <li>Go额外提供了无符号整型uint，而Java没有。  </li>
+          <li>Go提供了复数类型complex，而Java没有。</li>
+          <li>Go的字符串类型是string，是原生类型；而Java用的是String类。</li>
+          <li>Java有单独的字符类型char，而Go却没有。在Go中，rune类型实际上就是int32的别名，常用来表示Unicode码。</li>
+          </ul>
+          <p><strong>平台无关类型和平台相关类型</strong></p>
+          <p>Go语言的数值类型还分为平台无关类型和平台相关类型。平台无关类型包括int8、uint8、int16、uint16、int32、uint32、int64、uint64等，它们在任何平台上所占的位数都是固定的。而平台相关类型包括int、uint和uintptr，它们的位数则取决于构建代码的平台：</p>
+          <table>
+          <thead>
+          <tr>
+          <th>类型</th>
+          <th>32位平台</th>
+          <th>64位平台</th>
+          </tr>
+          </thead>
+          <tbody><tr>
+          <td>int</td>
+          <td>32位</td>
+          <td>64位</td>
+          </tr>
+          <tr>
+          <td>uint</td>
+          <td>32位</td>
+          <td>64位</td>
+          </tr>
+          <tr>
+          <td>uintptr</td>
+          <td>32位</td>
+          <td>64位</td>
+          </tr>
+          </tbody></table>
+          <p>以int类型为例，在32位平台上它是32位的，而在64位平台上则是64位的。所以在跨平台的代码中，应该尽量使用平台无关类型，避免位数的差异导致的问题。而平台相关类型通常只在低层系统编程或者性能优化时使用。</p>
+          <p>而在Java中，大部分原生类型都是固定位数的，不受平台影响。不过也有一些例外，比如long类型：</p>
+          <table>
+          <thead>
+          <tr>
+          <th>类型</th>
+          <th>32位平台</th>
+          <th>64位平台</th>
+          </tr>
+          </thead>
+          <tbody><tr>
+          <td>int</td>
+          <td>32位</td>
+          <td>32位</td>
+          </tr>
+          <tr>
+          <td>long</td>
+          <td>32位</td>
+          <td>64位</td>
+          </tr>
+          <tr>
+          <td>long long</td>
+          <td>64位</td>
+          <td>64位</td>
+          </tr>
+          </tbody></table>
+          <p>在一些32位的JVM实现中(如32位Windows系统)，long占4个字节也就是32位的。但在主流的64位平台上，long是64位。不过这种差异很少会影响到普通的Java程序。</p>
+          <p><strong>数组</strong></p>
+          <p>说到数组，Java和Go就有了很大的不同。在Java中，数组是引用类型。声明一个数组需要指定元素类型和数组长度，例如：</p>
+          <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span>[] arr = <span class="keyword">new</span> <span class="title class_">int</span>[<span class="number">5</span>];</span><br></pre></td></tr></table></figure>
+          
+          <p>这里的arr是一个引用，指向一个包含5个int类型元素的数组对象。数组的元素在没有显式初始化的情况下，会被赋予类型的默认值。<br>我们也可以在声明时直接提供初始值：</p>
+          <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span>[] arr = &#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>&#125;;</span><br></pre></td></tr></table></figure>
+          
+          <p>而在Go语言中，数组是值类型。声明数组时同样需要指定元素类型和数组长度：</p>
+          <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 没有显式初始化时，内部默认为零值，等价于0,0,0,0,0</span></span><br><span class="line"><span class="keyword">var</span> arr [<span class="number">5</span>]<span class="type">int</span></span><br></pre></td></tr></table></figure>
+          <p>我们也可以在声明时提供初始值：</p>
+          <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">arr := [<span class="number">5</span>]<span class="type">int</span>&#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>&#125;</span><br></pre></td></tr></table></figure>
+          
+          <p>可以在声明时提供部分初始值，缺失位置为零值：</p>
+          <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//等价于1, 2, 3, 0, 0</span></span><br><span class="line">arr := [<span class="number">5</span>]<span class="type">int</span>&#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>&#125;</span><br></pre></td></tr></table></figure>
+          
+          <p>与Java不同的是，Go还支持让编译器根据初始值的个数自动推断数组长度：</p>
+          <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 等价于 [5]int&#123;1, 2, 3, 4, 5&#125;</span></span><br><span class="line">arr := [...]<span class="type">int</span>&#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>&#125; </span><br></pre></td></tr></table></figure>
+          
+          <p>此外，Go还支持使用索引来初始化数组的特定元素：</p>
+          <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 等价于 [5]int&#123;0, 10, 0, 30, 0&#125;</span></span><br><span class="line">arr := [<span class="number">5</span>]<span class="type">int</span>&#123;<span class="number">1</span>: <span class="number">10</span>, <span class="number">3</span>: <span class="number">30</span>&#125; </span><br></pre></td></tr></table></figure>
+          
+          
+          <p>从内存布局上看，Java的数组对象本身是分配在堆内存上的，而数组元素则可能在堆或者栈上。而Go的数组则总是分配在连续的内存上。如果数组是函数的局部变量，那么整个数组都会在栈上分配。</p>
+          <p>此外，Go的数组是值语义，赋值或者传参时会复制整个数组。而Java的数组是引用语义，赋值或传参时只复制引用。</p>
+          <p>Java中的数组是引用类型，这意味着你可以将一个数组赋值给另一个数组，它们会指向同一个数组对象:</p>
+          <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span>[] arr1 = &#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>&#125;;</span><br><span class="line"><span class="type">int</span>[] arr2 = arr1;</span><br><span class="line">arr2[<span class="number">0</span>] = <span class="number">10</span>;</span><br><span class="line">System.out.println(arr1[<span class="number">0</span>]); <span class="comment">// 输出10</span></span><br></pre></td></tr></table></figure>
+          
+          <p>改变arr2的元素，也会影响到arr1，因为它们本质上是同一个数组。</p>
+          <p>而Go的数组是值类型，赋值或传参会复制整个数组：</p>
+          <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">arr1 := [<span class="number">3</span>]<span class="type">int</span>&#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>&#125;</span><br><span class="line">arr2 := arr1</span><br><span class="line">arr2[<span class="number">0</span>] = <span class="number">10</span></span><br><span class="line">fmt.Println(arr1[<span class="number">0</span>]) <span class="comment">// 输出1</span></span><br></pre></td></tr></table></figure>
+          
+          <p>改变arr2不会影响到arr1，因为它们是两个完全独立的数组。</p>
+          <p>这种差异会影响到数组作为函数参数时的行为：</p>
+          <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Java</span></span><br><span class="line"><span class="keyword">void</span> <span class="title function_">foo</span><span class="params">(<span class="type">int</span>[] arr)</span> &#123;</span><br><span class="line">    arr[<span class="number">0</span>] = <span class="number">10</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span>[] arr = &#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>&#125;;</span><br><span class="line">foo(arr);</span><br><span class="line">System.out.println(arr[<span class="number">0</span>]); <span class="comment">// 输出10</span></span><br></pre></td></tr></table></figure>
+          
+          <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Go</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">foo</span><span class="params">(arr [3]<span class="type">int</span>)</span></span> &#123;</span><br><span class="line">    arr[<span class="number">0</span>] = <span class="number">10</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">arr := [<span class="number">3</span>]<span class="type">int</span>&#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>&#125;</span><br><span class="line">foo(arr)</span><br><span class="line">fmt.Println(arr[<span class="number">0</span>]) <span class="comment">// 输出1</span></span><br></pre></td></tr></table></figure>
+          
+          <p>在Java中，函数内部对数组元素的修改会影响到原数组。而在Go中,函数内部得到的是数组的一个副本，对它的修改不会影响原数组。</p>
+          <p>如果你想在Go中实现类似Java的引用传递效果，可以使用数组指针：</p>
+          <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">foo</span><span class="params">(arr *[3]<span class="type">int</span>)</span></span> &#123;</span><br><span class="line">    (*arr)[<span class="number">0</span>] = <span class="number">10</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">arr := [<span class="number">3</span>]<span class="type">int</span>&#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>&#125;</span><br><span class="line">foo(&amp;arr)</span><br><span class="line">fmt.Println(arr[<span class="number">0</span>]) <span class="comment">// 输出10</span></span><br></pre></td></tr></table></figure>
+          
+          <p><strong>多维数组</strong></p>
+          <p>Java支持多维数组，实际上是数组的数组：</p>
+          <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span>[][] arr = <span class="keyword">new</span> <span class="title class_">int</span>[<span class="number">3</span>][<span class="number">4</span>];</span><br></pre></td></tr></table></figure>
+          
+          <p>这里的arr是一个包含3个元素的数组，每个元素又是一个包含4个int类型元素的数组。</p>
+          <p>Go也支持多维数组，但实现方式不同：</p>
+          <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> arr [<span class="number">3</span>][<span class="number">4</span>]<span class="type">int</span></span><br></pre></td></tr></table></figure>
+          
+          <p>这里的arr是一个真正的二维数组，内存是连续分配的。</p>
+          <p><strong>数组的长度</strong></p>
+          <p>在Java中，数组的长度可以通过length属性获取：</p>
+          <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span>[] arr = &#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>&#125;;</span><br><span class="line">System.out.println(arr.length); <span class="comment">// 输出3</span></span><br></pre></td></tr></table></figure>
+          
+          <p>在Go中，可以使用内置的len函数：</p>
+          <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">arr := [...]<span class="type">int</span>&#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>&#125;</span><br><span class="line">fmt.Println(<span class="built_in">len</span>(arr)) <span class="comment">// 输出3</span></span><br></pre></td></tr></table></figure>
+          
+          <p>需要注意的是，在Go中数组的长度是类型的一部分。[3]int和[4]int是两种不同的类型。而在Java中，数组的长度与类型无关。</p>
+          <p><strong>切片</strong></p>
+          <p>在go语言中，我们使用切片要多过使用数组。切片(slice)是数组的一个视图。它提供了一种方便且高效的方式来操作数组的一部分。切片本身并不拥有任何数据，它只是描述了底层数组的一个片段。可以用望远镜来类比切片——望远镜本身不存储你看到的风景，它只是提供了一个观察窗口。同样，切片也只是提供了观察数组的”窗口”。</p>
+          <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">arr := [<span class="number">5</span>]<span class="type">int</span>&#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>&#125;</span><br><span class="line">slice := arr[<span class="number">1</span>:<span class="number">4</span>]</span><br></pre></td></tr></table></figure>
+          <p>这里的slice就是一个切片，它描述了数组arr的一个片段，从索引1(包含)到索引4(不包含)，也就是{2, 3, 4}。</p>
+          <p>Java中没有切片的概念，但可以通过Arrays.copyOfRange()方法来获取数组的一部分：</p>
+          <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span>[] arr = &#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>&#125;;</span><br><span class="line"><span class="type">int</span>[] slice = Arrays.copyOfRange(arr, <span class="number">1</span>, <span class="number">4</span>);</span><br></pre></td></tr></table></figure>
+          
+          <p>这会创建一个新的数组slice，包含arr[1]到arr[3]的元素。</p>
+          <p>除了从数组或其他切片创建切片外,Go还提供了内置的make函数来创建切片:</p>
+          <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">slice := <span class="built_in">make</span>([]<span class="type">int</span>, <span class="number">3</span>, <span class="number">5</span>)</span><br></pre></td></tr></table></figure>
+          
+          <p>这会创建一个长度为3,容量为5的int类型的切片。底层数组会在堆上分配。</p>
+          <p>类似地,Java可以使用Arrays.copyOf方法来创建一个新的数组：</p>
+          <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span>[] slice = Arrays.copyOf(<span class="keyword">new</span> <span class="title class_">int</span>[<span class="number">5</span>], <span class="number">3</span>);</span><br></pre></td></tr></table></figure>
+          
+          <p>这会创建一个长度为3,容量为5的int数组。</p>
+          <p>在Go中，切片由三部分组成：</p>
+          <ul>
+          <li>指向底层数组的指针</li>
+          <li>切片的长度(length) </li>
+          <li>切片的容量(capacity)</li>
+          </ul>
+          <p>其中,长度表示切片中元素的数量，容量表示切片起始位置到底层数组末尾的元素数量。</p>
+          <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">arr := [<span class="number">5</span>]<span class="type">int</span>&#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>&#125;</span><br><span class="line">slice := arr[<span class="number">1</span>:<span class="number">4</span>]</span><br><span class="line">fmt.Println(<span class="built_in">len</span>(slice)) <span class="comment">// 输出3</span></span><br><span class="line">fmt.Println(<span class="built_in">cap</span>(slice)) <span class="comment">// 输出4</span></span><br></pre></td></tr></table></figure>
+          
+          <p><strong>切片的遍历</strong></p>
+          <p>在Go中，可以使用for range语法轻松遍历切片：</p>
+          <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">slice := []<span class="type">int</span>&#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>&#125;</span><br><span class="line"><span class="keyword">for</span> i, v := <span class="keyword">range</span> slice &#123;</span><br><span class="line">    fmt.Printf(<span class="string">&quot;index: %d, value: %d\n&quot;</span>, i, v)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+          
+          <p>在Java中,可以使用普通的for循环：</p>
+          <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span>[] slice = &#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>&#125;;</span><br><span class="line"><span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; slice.length; i++) &#123;</span><br><span class="line">    System.out.printf(<span class="string">&quot;index: %d, value: %d\n&quot;</span>, i, slice[i]);</span><br><span class="line">&#125;  </span><br></pre></td></tr></table></figure>
+          
+          <p>或者使用增强型for循环(forEach)：</p>
+          <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (<span class="type">int</span> v : slice) &#123;</span><br><span class="line">    System.out.println(v);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+          
+          <p>切片提供了比数组更强大、更灵活的操作方式：</p>
+          <ol>
+          <li>可以很方便地获取数组的一部分。</li>
+          <li>可以通过改变切片的长度来动态改变切片的大小(最大不超过容量)。</li>
+          <li>多个切片可以共享同一个底层数组，节省内存空间。</li>
+          <li>内置的append函数可以方便地向切片添加元素，切片会自动扩容（扩容会改变底层数组）。</li>
+          </ol>
+          <p><strong>切片的坑</strong></p>
+          <p>正因为切片共享底层数组，在使用时也需要注意一些坑：</p>
+          <ol>
+          <li>当多个切片共享同一个数组时，对一个切片的修改会影响到其他切片。</li>
+          <li>当切片的容量用尽后，再次append会导致重新分配内存，此时就不再与原数组共享内存了。</li>
+          </ol>
+          <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">arr := [<span class="number">5</span>]<span class="type">int</span>&#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>&#125;</span><br><span class="line">slice1 := arr[<span class="number">1</span>:<span class="number">4</span>] <span class="comment">// 切片的容量是从子切片的起点，到底层数组的终点</span></span><br><span class="line"></span><br><span class="line">slice2 := arr[<span class="number">2</span>:<span class="number">5</span>]</span><br><span class="line">fmt.Println(slice1) <span class="comment">// 输出[2 3 4]</span></span><br><span class="line">fmt.Println(slice2) <span class="comment">// 输出[3 4 5]</span></span><br><span class="line"></span><br><span class="line">slice1 = <span class="built_in">append</span>(slice1, <span class="number">6</span>)</span><br><span class="line">fmt.Println(arr)    <span class="comment">// 输出[1 2 3 4 6]</span></span><br><span class="line">fmt.Println(slice1) <span class="comment">// 输出[2 3 4 6]</span></span><br><span class="line">fmt.Println(slice2) <span class="comment">// 输出[3 4 6]  </span></span><br></pre></td></tr></table></figure>
+          
+          <p>这里slice1和slice2共享同一个底层数组。当slice1添加元素时,会影响到原数组和slice2。</p>
+          <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">arr := [<span class="number">5</span>]<span class="type">int</span>&#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>&#125;</span><br><span class="line">slice := arr[<span class="number">1</span>:<span class="number">3</span>]</span><br><span class="line">newSlice := <span class="built_in">append</span>(slice, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>)</span><br><span class="line">fmt.Println(arr)      <span class="comment">// 输出[1 2 3 4 5]  </span></span><br><span class="line">fmt.Println(slice)    <span class="comment">// 输出[2 3]</span></span><br><span class="line">fmt.Println(newSlice) <span class="comment">// 输出[2 3 6 7 8]</span></span><br></pre></td></tr></table></figure>
+          
+          <p>在这个例子中，因为slice的容量只有2，当添加3个元素时，会重新分配内存。此时newSlice就不再与arr共享内存了。</p>
+          <p>切片扩容策略：<br>    当容量小于 256 的时候，两倍扩容；<br>    否则，按照 1.25 扩容。<br>ps：低版本是 1024 作为分界点。</p>
+          <p>在使用切片时我们最好预估切片最终的大小，使用make预分配可以避免切片多次扩容。</p>
+          <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 性能不好的写法</span></span><br><span class="line">s := <span class="built_in">make</span>([]<span class="type">int</span>, <span class="number">0</span>)</span><br><span class="line"><span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="number">10000</span>; i++ &#123;</span><br><span class="line">    s = <span class="built_in">append</span>(s, i)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 更好的写法</span></span><br><span class="line">s := <span class="built_in">make</span>([]<span class="type">int</span>, <span class="number">0</span>, <span class="number">10000</span>)</span><br><span class="line"><span class="keyword">for</span> i := <span class="number">0</span>; i &lt; <span class="number">10000</span>; i++ &#123;</span><br><span class="line">    s = <span class="built_in">append</span>(s, i)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+          
+          <p>如果可能，尽量复用已有的切片而不是创建新的</p>
+          <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 性能不好的写法</span></span><br><span class="line"><span class="keyword">for</span> _, v := <span class="keyword">range</span> items &#123;</span><br><span class="line">    processed := <span class="built_in">make</span>([]<span class="type">int</span>, <span class="number">0</span>)</span><br><span class="line">    <span class="comment">// 处理v...</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 更好的写法</span></span><br><span class="line">processed := <span class="built_in">make</span>([]<span class="type">int</span>, <span class="number">0</span>, <span class="built_in">len</span>(items))</span><br><span class="line"><span class="keyword">for</span> _, v := <span class="keyword">range</span> items &#123;</span><br><span class="line">    processed = processed[:<span class="number">0</span>] <span class="comment">// 清空切片但保留容量</span></span><br><span class="line">    <span class="comment">// 处理v...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+          
+          
+          <p>数组和切片的区别：</p>
+          <table>
+          <thead>
+          <tr>
+          <th></th>
+          <th>数组</th>
+          <th>切片</th>
+          </tr>
+          </thead>
+          <tbody><tr>
+          <td>直接初始化</td>
+          <td>支持</td>
+          <td>支持</td>
+          </tr>
+          <tr>
+          <td>make</td>
+          <td>不支持</td>
+          <td>支持</td>
+          </tr>
+          <tr>
+          <td>访问元素</td>
+          <td>arr[i]</td>
+          <td>arr[i]</td>
+          </tr>
+          <tr>
+          <td>len</td>
+          <td>长度</td>
+          <td>已有元素个数</td>
+          </tr>
+          <tr>
+          <td>cap</td>
+          <td>长度</td>
+          <td>容量</td>
+          </tr>
+          <tr>
+          <td>append</td>
+          <td>不支持</td>
+          <td>支持</td>
+          </tr>
+          <tr>
+          <td>扩容</td>
+          <td>不可以</td>
+          <td>可以</td>
+          </tr>
+          </tbody></table>
+          <p><strong>Map类型</strong></p>
+          <p>现在让我们来看看另一个重要的复合类型：Map。Java中的Map是一个接口，有多种实现（HashMap、TreeMap等），而Go中的map是语言内置的类型。这种差异体现了两种语言不同的设计哲学。</p>
+          <p>在Java中，Map是一个顶层接口，定义了键值对操作的基本行为：</p>
+          <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">Map</span>&lt;K, V&gt; &#123;</span><br><span class="line">    V <span class="title function_">put</span><span class="params">(K key, V value)</span>;</span><br><span class="line">    V <span class="title function_">get</span><span class="params">(Object key)</span>;</span><br><span class="line">    <span class="type">boolean</span> <span class="title function_">containsKey</span><span class="params">(Object key)</span>;</span><br><span class="line">    <span class="comment">// ... 其他方法</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 常用实现</span></span><br><span class="line">Map&lt;String, Integer&gt; hashMap = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">Map&lt;String, Integer&gt; treeMap = <span class="keyword">new</span> <span class="title class_">TreeMap</span>&lt;&gt;();</span><br><span class="line">Map&lt;String, Integer&gt; linkedHashMap = <span class="keyword">new</span> <span class="title class_">LinkedHashMap</span>&lt;&gt;();</span><br></pre></td></tr></table></figure>
+          
+          <p>这种设计的优点是灵活性强，可以根据需要选择不同的实现：</p>
+          <ul>
+          <li>HashMap：无序，O(1)的查找性能</li>
+          <li>TreeMap：有序，基于红黑树，O(log n)的性能</li>
+          <li>LinkedHashMap：保持插入顺序</li>
+          </ul>
+          <p>Go则采用了更简单的方案，只提供了一种内置的map类型：</p>
+          <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 声明并初始化</span></span><br><span class="line">m := <span class="built_in">make</span>(<span class="keyword">map</span>[<span class="type">string</span>]<span class="type">int</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 或者使用字面量语法</span></span><br><span class="line">m := <span class="keyword">map</span>[<span class="type">string</span>]<span class="type">int</span>&#123;</span><br><span class="line">    <span class="string">&quot;apple&quot;</span>: <span class="number">1</span>,</span><br><span class="line">    <span class="string">&quot;banana&quot;</span>: <span class="number">2</span>,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 基本操作</span></span><br><span class="line">m[<span class="string">&quot;orange&quot;</span>] = <span class="number">3</span>        <span class="comment">// 插入</span></span><br><span class="line">value := m[<span class="string">&quot;apple&quot;</span>]    <span class="comment">// 读取</span></span><br><span class="line"><span class="built_in">delete</span>(m, <span class="string">&quot;banana&quot;</span>)    <span class="comment">// 删除</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 判断key是否存在</span></span><br><span class="line"><span class="keyword">if</span> value, ok := m[<span class="string">&quot;apple&quot;</span>]; ok &#123;</span><br><span class="line">    fmt.Printf(<span class="string">&quot;存在，值为: %d\n&quot;</span>, value)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+          
+          <p>Go的map虽然看起来简单，但有一些特性需要特别注意：</p>
+          <ol>
+          <li>并发不安全</li>
+          </ol>
+          <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 这样做是危险的！</span></span><br><span class="line"><span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">    m[<span class="string">&quot;key&quot;</span>] = <span class="number">1</span></span><br><span class="line">&#125;()</span><br><span class="line"><span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">    _ = m[<span class="string">&quot;key&quot;</span>]</span><br><span class="line">&#125;()</span><br></pre></td></tr></table></figure>
+          
+          <p>如果需要并发安全的map，我们有两个选择：</p>
+          <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 选择1：使用sync.Map</span></span><br><span class="line"><span class="keyword">var</span> sm sync.Map</span><br><span class="line">sm.Store(<span class="string">&quot;key&quot;</span>, value)</span><br><span class="line">val, ok := sm.Load(<span class="string">&quot;key&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 选择2：使用互斥锁保护普通map</span></span><br><span class="line"><span class="keyword">var</span> m = <span class="built_in">make</span>(<span class="keyword">map</span>[<span class="type">string</span>]<span class="type">int</span>)</span><br><span class="line"><span class="keyword">var</span> mutex sync.Mutex</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">safeWrite</span><span class="params">(key <span class="type">string</span>, value <span class="type">int</span>)</span></span> &#123;</span><br><span class="line">    mutex.Lock()</span><br><span class="line">    <span class="keyword">defer</span> mutex.Unlock()</span><br><span class="line">    m[key] = value</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+          
+          <ol start="2">
+          <li>键的类型限制</li>
+          </ol>
+          <p>Go的map键类型必须是可比较的（comparable），这意味着函数、切片、包含切片的结构体都不能作为键：</p>
+          <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 这些都是非法的</span></span><br><span class="line">m1 := <span class="built_in">make</span>(<span class="keyword">map</span>[[]<span class="type">int</span>]<span class="type">string</span>)           <span class="comment">// 切片不能作为键</span></span><br><span class="line">m2 := <span class="built_in">make</span>(<span class="keyword">map</span>[<span class="function"><span class="keyword">func</span><span class="params">()</span></span>]<span class="type">string</span>)          <span class="comment">// 函数不能作为键</span></span><br><span class="line">m3 := <span class="built_in">make</span>(<span class="keyword">map</span>[<span class="keyword">map</span>[<span class="type">string</span>]<span class="type">int</span>]<span class="type">string</span>)  <span class="comment">// map不能作为键</span></span><br></pre></td></tr></table></figure>
+          
+          <ol start="3">
+          <li>内存管理</li>
+          </ol>
+          <p>Go的map会自动扩容，但不会自动收缩。如果你删除了大量的键值对，需要考虑重建map来释放内存：</p>
+          <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 如果删除了大量数据后，可以通过重建map来收缩内存</span></span><br><span class="line">oldMap := <span class="built_in">make</span>(<span class="keyword">map</span>[<span class="type">string</span>]<span class="type">int</span>)</span><br><span class="line"><span class="comment">// ... 填充数据后删除了大量键值对</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 重建map来收缩内存</span></span><br><span class="line">newMap := <span class="built_in">make</span>(<span class="keyword">map</span>[<span class="type">string</span>]<span class="type">int</span>, <span class="built_in">len</span>(oldMap))</span><br><span class="line"><span class="keyword">for</span> k, v := <span class="keyword">range</span> oldMap &#123;</span><br><span class="line">    newMap[k] = v</span><br><span class="line">&#125;</span><br><span class="line">oldMap = newMap</span><br></pre></td></tr></table></figure>
+          
+          <p><strong>类型转换</strong></p>
+          <p>Go不支持隐式类型转换，即使是底层类型相同的情况下：</p>
+          <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> i <span class="type">int</span> = <span class="number">1</span></span><br><span class="line"><span class="keyword">var</span> j <span class="type">int32</span> = i  <span class="comment">// 编译错误：不同类型间不能隐式转换</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 必须显式转换</span></span><br><span class="line">j = <span class="type">int32</span>(i)</span><br></pre></td></tr></table></figure>
+          
+          <p>这种设计乍看有些死板，但这恰恰体现了Go对类型安全的重视。当然这样在做开发时就比较麻烦了，不过正如Go语言作者Rob Pike所说，“显式的代码优于隐式的代码”。毕竟类型转换常常会导致一些难以排查的bug。显式的类型转换，迫使开发者思考每一个类型转换的合理性，从而在编码阶段就能发现潜在的问题。也使得代码更易于阅读，减少了出错的可能。</p>
+          <p>Java则采取了一个折中的方案：</p>
+          <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">1</span>;</span><br><span class="line"><span class="type">long</span> <span class="variable">l</span> <span class="operator">=</span> i;    <span class="comment">// 隐式转换：安全</span></span><br><span class="line"><span class="type">int</span> <span class="variable">j</span> <span class="operator">=</span> l;     <span class="comment">// 编译错误：可能丢失精度</span></span><br><span class="line"><span class="type">int</span> <span class="variable">k</span> <span class="operator">=</span> (<span class="type">int</span>)l;  <span class="comment">// 显式转换：允许</span></span><br></pre></td></tr></table></figure>
+          
+          <p>Java允许”安全”的隐式转换（如int到long），但要求”不安全”的转换必须显式进行。</p>
+          <p>Go的类型系统设计虽然看似限制更多，但实际上通过这些”限制”，反而为我们创造了更安全、更可维护的代码环境。这也许就是Go语言的设计者们想要追求的目标，通过合理的限制来获得更大的自由。</p>
+          
+                
+              </div>
+              <footer class="article-footer">
+                <a data-url="http://yoursite.com/2024/06/10/Go%20vs%20Java%E6%B7%B1%E5%85%A5%E5%AF%B9%E6%AF%94%E7%B3%BB%E5%88%97%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9A%E7%B1%BB%E5%9E%8B%E7%B3%BB%E7%BB%9F/" data-id="cm2x6va900002s8ur4tvrfm51" data-title="" class="article-share-link"><span class="fa fa-share">Share</span></a>
+                
+                
+                
+              </footer>
+            </div>
+            
+          </article>
+
           <article id="post-Go vs Java深入对比系列（一）：语言设计哲学" class="article article-type-post" itemscope itemprop="blogPost">
             <div class="article-meta">
-              <a href="/2024/5/30/Go%20vs%20Java%E6%B7%B1%E5%85%A5%E5%AF%B9%E6%AF%94%E7%B3%BB%E5%88%97%EF%BC%88%E4%B8%80%EF%BC%89%EF%BC%9A%E8%AF%AD%E8%A8%80%E8%AE%BE%E8%AE%A1%E5%93%B2%E5%AD%A6/" class="article-date">
-            <time class="dt-published" datetime="2024-5-29T16:49:29.295Z" itemprop="datePublished">2024-5-30</time>
+              <a href="/2024/05/30/Go%20vs%20Java%E6%B7%B1%E5%85%A5%E5%AF%B9%E6%AF%94%E7%B3%BB%E5%88%97%EF%BC%88%E4%B8%80%EF%BC%89%EF%BC%9A%E8%AF%AD%E8%A8%80%E8%AE%BE%E8%AE%A1%E5%93%B2%E5%AD%A6/" class="article-date">
+            <time class="dt-published" datetime="2024-05-29T16:49:29.295Z" itemprop="datePublished">2024-05-30</time>
           </a>
               
             </div>
@@ -78,7 +876,7 @@
         
   
                 <h1 itemprop="name">
-                  <a class="article-title" href="/2024/5/30/Go%20vs%20Java%E6%B7%B1%E5%85%A5%E5%AF%B9%E6%AF%94%E7%B3%BB%E5%88%97%EF%BC%88%E4%B8%80%EF%BC%89%EF%BC%9A%E8%AF%AD%E8%A8%80%E8%AE%BE%E8%AE%A1%E5%93%B2%E5%AD%A6/">Go vs Java深入对比系列（一）：语言设计哲学</a>
+                  <a class="article-title" href="/2024/05/30/Go%20vs%20Java%E6%B7%B1%E5%85%A5%E5%AF%B9%E6%AF%94%E7%B3%BB%E5%88%97%EF%BC%88%E4%B8%80%EF%BC%89%EF%BC%9A%E8%AF%AD%E8%A8%80%E8%AE%BE%E8%AE%A1%E5%93%B2%E5%AD%A6/">Go vs Java深入对比系列（一）：语言设计哲学</a>
                 </h1>
               
             
@@ -114,7 +912,7 @@
                   <li>注重实用：内置开发工具链（格式化、测试等）</li>
                   </ul>
                   <p>可以说Go和Java分别代表着两种不同的技术路线和设计理念。正如Go语言之父Rob Pike所说:”Go语言的诞生源于对现有编程语言的不满。我们发现大型软件项目的开发正变得越来越缓慢和笨拙，软件设计的复杂度不断攀升，编译速度也越来越慢。我们需要一门面向未来的编程语言来解决这些问题。”</p>
-                  <p>Go语言摒弃了许多传统编程语言的复杂特性。比如:</p>
+                  <p>Go语言摒弃了许多传统编程语言的复杂特性。比如：</p>
                   <ul>
                   <li>不支持继承，而是通过组合实现代码复用</li>
                   <li>没有异常处理机制，而是使用显式的错误返回值</li>
@@ -122,7 +920,7 @@
                   <li>没有隐式类型转换，要求类型的显式匹配</li>
                   </ul>
                   <p>这些”限制”不是缺陷，而是经过深思熟虑的设计选择。通过减少语言特性，Go显著降低了开发者的心智负担，提高了代码的可维护性。</p>
-                  <p>Go语言在工程实践层面做了大量创新:</p>
+                  <p>Go语言在工程实践层面做了大量创新：</p>
                   <ol>
                   <li><p>极速的编译速度</p>
                   <ul>
@@ -150,7 +948,7 @@
                   </ol>
                   <p>相比之下，Java走的是一条截然不同的道路。它的设计理念可以概括为”一切皆对象”。</p>
                   <ol>
-                  <li><p>Java是一门纯粹的面向对象语言，它提供了:</p>
+                  <li><p>Java是一门纯粹的面向对象语言，它提供了：</p>
                   <ul>
                   <li>完整的类继承体系</li>
                   <li>接口与抽象类</li>
@@ -249,55 +1047,323 @@
               </footer>
             </div>
             
-          </article>      
+          </article>
+          
+          <article id="post-深入LLM基础，手撕变形金刚(Transformer)！" class="article article-type-post" itemscope itemprop="blogPost">
+            <div class="article-meta">
+              <a href="/2023/11/13/%E6%B7%B1%E5%85%A5LLM%E5%9F%BA%E7%A1%80%EF%BC%8C%E6%89%8B%E6%92%95%E5%8F%98%E5%BD%A2%E9%87%91%E5%88%9A(Transformer)%EF%BC%81/" class="article-date">
+            <time class="dt-published" datetime="2024-11-13T10:54:12.678Z" itemprop="datePublished">2023-11-13</time>
+          </a>
+              
+            </div>
+            <div class="article-inner">
+          
+              <header class="article-header">
+                  
+            
+                <h1 itemprop="name">
+                  <a class="article-title" href="/2023/11/13/%E6%B7%B1%E5%85%A5LLM%E5%9F%BA%E7%A1%80%EF%BC%8C%E6%89%8B%E6%92%95%E5%8F%98%E5%BD%A2%E9%87%91%E5%88%9A(Transformer)%EF%BC%81/">深入LLM基础，手撕变形金刚(Transformer)！</a>
+                </h1>
+              
+            
+                  </header>
+              
+              
+              <div class="e-content article-entry" itemprop="articleBody">
+                
+                  <p>在过去的一年里，我们见证了以ChatGPT为代表的大语言模型，也就是所谓的LLM给整个AI领域带来的巨大变革，可以说LLM杀死了NLP比赛，却又让NLP从此重获新生。那么LLM的核心原理是什么？要实现一个基础的LLM需要什么技术储备？”</p>
+          <p>本文将带领大家深入探讨LLM的技术本质，并通过手写实现来加深理解。需要说明的是，虽然现代LLM都是数千亿参数的庞然大物，但它们的基石仍然是Transformer架构。理解并能够实现Transformer，是深入LLM领域的必经之路。</p>
+          <h2 id="1-从序列建模说起"><a href="#1-从序列建模说起" class="headerlink" title="1. 从序列建模说起"></a>1. 从序列建模说起</h2><p>在深入技术细节之前，我们需要理解一个基本问题：为什么需要Transformer？</p>
+          <p>在Transformer出现之前，处理序列数据主要依赖RNN循环神经网络及其变体LSTM、GRU等。这类模型通过循环结构来处理序列信息，但存在三个主要问题：</p>
+          <ol>
+          <li>无法并行计算，处理长序列时计算效率低下</li>
+          <li>长距离依赖问题，即难以捕捉序列中相距较远的关联</li>
+          <li>梯度消失&#x2F;爆炸问题，影响模型训练稳定性</li>
+          </ol>
+          <p>2017年，Google提出的Transformer架构巧妙地解决了这些问题。它抛弃了循环结构，完全基于注意力机制构建，实现了：</p>
+          <ul>
+          <li>充分的并行计算</li>
+          <li>直接的全局信息交互  </li>
+          <li>稳定的梯度传播</li>
+          </ul>
+          <p>这些优势使得Transformer迅速成为处理序列数据的首选架构。</p>
+          <h2 id="2-Transformer架构"><a href="#2-Transformer架构" class="headerlink" title="2. Transformer架构"></a>2. Transformer架构</h2><p>Transformer采用了经典的编码器-解码器(Encoder-Decoder)架构，但内部实现非常独特：</p>
+          <ul>
+          <li><p><strong>编码器</strong>:将输入序列编码为隐藏表示</p>
+          <ul>
+          <li>包含6层相同的结构</li>
+          <li>每层包含自注意力机制和前馈网络</li>
+          <li>采用残差连接和层归一化</li>
+          </ul>
+          </li>
+          <li><p><strong>解码器</strong>:基于编码器的输出生成目标序列</p>
+          <ul>
+          <li>同样包含6层相同的结构</li>
+          <li>每层包含自注意力、交叉注意力和前馈网络</li>
+          <li>使用mask机制确保自回归生成</li>
+          </ul>
+          </li>
+          </ul>
+          <p>核心创新点在于抛弃了循环结构，转而使用自注意力机制实现序列建模。这一设计使得模型可以：</p>
+          <ol>
+          <li>并行处理整个序列</li>
+          <li>建立任意位置间的直接联系</li>
+          <li>控制信息流动的粒度</li>
+          </ol>
+          <p>接下来，让我们深入了解注意力机制的工作原理。</p>
+          <h2 id="3-注意力机制-核心中的核心"><a href="#3-注意力机制-核心中的核心" class="headerlink" title="3. 注意力机制:核心中的核心"></a>3. 注意力机制:核心中的核心</h2><h3 id="3-1-注意力机制的直观理解"><a href="#3-1-注意力机制的直观理解" class="headerlink" title="3.1 注意力机制的直观理解"></a>3.1 注意力机制的直观理解</h3><p>在解释数学原理之前，先用一个直观的类比来理解注意力机制：</p>
+          <p>想象你正在阅读一篇长文章，要给出文章大意。你会怎么做？</p>
+          <ol>
+          <li>先快速浏览全文，找到关键词和重要句子 (Query过程)</li>
+          <li>将当前关注点与这些关键信息进行对比 (Key匹配过程)  </li>
+          <li>重点关注相关度高的内容，忽略无关内容 (Value加权过程)</li>
+          </ol>
+          <p>注意力机制本质上就是在模拟这个过程。</p>
+          <h3 id="3-2-数学原理"><a href="#3-2-数学原理" class="headerlink" title="3.2 数学原理"></a>3.2 数学原理</h3><p>形式化地说，注意力机制包含三个核心步骤：</p>
+          <ol>
+          <li><strong>线性映射</strong>:将输入向量X转换为查询(Q)、键(K)、值(V)三组向量：</li>
+          </ol>
+          <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Q = XW_q</span><br><span class="line">K = XW_k  </span><br><span class="line">V = XW_v</span><br></pre></td></tr></table></figure>
+          
+          <ol start="2">
+          <li><strong>相似度计算</strong>: 使用点积计算Q和K的相似度：</li>
+          </ol>
+          <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">S = QK^T / sqrt(d_k)</span><br></pre></td></tr></table></figure>
+          
+          <ol start="3">
+          <li><strong>加权聚合</strong>: 使用softmax归一化后的分数加权V：</li>
+          </ol>
+          <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Attention(Q,K,V) = softmax(QK^T/sqrt(d_k))V</span><br></pre></td></tr></table></figure>
+          
+          <p>这里的<code>sqrt(d_k)</code>是一个缩放因子，用于调节梯度，防止内积结果过大导致softmax梯度消失。</p>
+          <h3 id="3-3-多头注意力机制"><a href="#3-3-多头注意力机制" class="headerlink" title="3.3 多头注意力机制"></a>3.3 多头注意力机制</h3><p>为了增强模型的表达能力，Transformer使用了多头注意力机制，就像是三头六臂的哪吒，头变多了，模型就变强了。简单说就是：</p>
+          <ol>
+          <li>将Q、K、V分别投影到h个子空间</li>
+          <li>在每个子空间独立计算注意力</li>
+          <li>合并h个头的输出结果</li>
+          </ol>
+          <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">MultiHeadAttention</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, d_model, num_heads</span>):</span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line">        <span class="keyword">assert</span> d_model % num_heads == <span class="number">0</span></span><br><span class="line">        </span><br><span class="line">        <span class="variable language_">self</span>.d_k = d_model // num_heads</span><br><span class="line">        <span class="variable language_">self</span>.num_heads = num_heads</span><br><span class="line">        </span><br><span class="line">        <span class="comment"># 为每个头创建独立的投影矩阵</span></span><br><span class="line">        <span class="variable language_">self</span>.w_q = nn.Linear(d_model, d_model)</span><br><span class="line">        <span class="variable language_">self</span>.w_k = nn.Linear(d_model, d_model)</span><br><span class="line">        <span class="variable language_">self</span>.w_v = nn.Linear(d_model, d_model)</span><br><span class="line">        <span class="variable language_">self</span>.w_o = nn.Linear(d_model, d_model)</span><br></pre></td></tr></table></figure>
+          
+          <p>多头机制让模型可以:</p>
+          <ul>
+          <li>关注不同的特征模式</li>
+          <li>在不同的表示子空间建模</li>
+          <li>集成多个角度的信息</li>
+          </ul>
+          <h2 id="4-位置编码-序列顺序的守护者"><a href="#4-位置编码-序列顺序的守护者" class="headerlink" title="4. 位置编码:序列顺序的守护者"></a>4. 位置编码:序列顺序的守护者</h2><p>Transformer抛弃循环结构带来了并行计算的优势，但也失去了序列的位置信息。为了补充这一信息，Transformer引入了位置编码(Positional Encoding)。</p>
+          <h3 id="4-1-正弦位置编码"><a href="#4-1-正弦位置编码" class="headerlink" title="4.1 正弦位置编码"></a>4.1 正弦位置编码</h3><p>原始论文采用正弦和余弦函数的组合:</p>
+          <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">get_positional_encoding</span>(<span class="params">seq_len, d_model</span>):</span><br><span class="line">    pe = torch.zeros(seq_len, d_model)</span><br><span class="line">    pos = torch.arange(<span class="number">0</span>, seq_len).unsqueeze(<span class="number">1</span>)</span><br><span class="line">    div = torch.exp(torch.arange(<span class="number">0</span>, d_model, <span class="number">2</span>) * </span><br><span class="line">                   -(math.log(<span class="number">10000.0</span>) / d_model))</span><br><span class="line">    </span><br><span class="line">    pe[:, <span class="number">0</span>::<span class="number">2</span>] = torch.sin(pos * div)</span><br><span class="line">    pe[:, <span class="number">1</span>::<span class="number">2</span>] = torch.cos(pos * div)</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> pe</span><br></pre></td></tr></table></figure>
+          
+          <p>这种设计有几个优点：</p>
+          <ol>
+          <li>可以处理任意长度的序列</li>
+          <li>位置之间的相对关系容易计算</li>
+          <li>可以平滑地扩展到未见过的位置</li>
+          </ol>
+          <h3 id="4-2-改进"><a href="#4-2-改进" class="headerlink" title="4.2 改进"></a>4.2 改进</h3><p>不过在实践中，研究者们提出了多种改进方案：</p>
+          <ol>
+          <li><strong>RoPE(Rotary Position Embedding)</strong></li>
+          </ol>
+          <ul>
+          <li>通过复数旋转引入位置信息</li>
+          <li>具有更好的相对位置建模能力</li>
+          </ul>
+          <ol start="2">
+          <li><strong>ALiBi(Attention with Linear Biases)</strong></li>
+          </ol>
+          <ul>
+          <li>为注意力分数添加线性偏置</li>
+          <li>外推能力更强</li>
+          </ul>
+          <ol start="3">
+          <li><strong>绝对位置编码</strong></li>
+          </ol>
+          <ul>
+          <li>直接学习每个位置的嵌入</li>
+          <li>实现简单，在某些任务上表现不错</li>
+          </ul>
+          <h2 id="5-规范化与残差-训练的稳定器"><a href="#5-规范化与残差-训练的稳定器" class="headerlink" title="5. 规范化与残差:训练的稳定器"></a>5. 规范化与残差:训练的稳定器</h2><h3 id="5-1-Layer-Normalization"><a href="#5-1-Layer-Normalization" class="headerlink" title="5.1 Layer Normalization"></a>5.1 Layer Normalization</h3><p>Layer Normalization在Transformer中起着至关重要的作用：</p>
+          <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">LayerNorm</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, features, eps=<span class="number">1e-6</span></span>):</span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line">        <span class="variable language_">self</span>.gamma = nn.Parameter(torch.ones(features))</span><br><span class="line">        <span class="variable language_">self</span>.beta = nn.Parameter(torch.zeros(features))</span><br><span class="line">        <span class="variable language_">self</span>.eps = eps</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x</span>):</span><br><span class="line">        mean = x.mean(-<span class="number">1</span>, keepdim=<span class="literal">True</span>)</span><br><span class="line">        std = x.std(-<span class="number">1</span>, keepdim=<span class="literal">True</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="variable language_">self</span>.gamma * (x - mean) / (std + <span class="variable language_">self</span>.eps) + <span class="variable language_">self</span>.beta</span><br></pre></td></tr></table></figure>
+          
+          <p>它的作用是：</p>
+          <ol>
+          <li>标准化每一层的输出</li>
+          <li>稳定梯度传播</li>
+          <li>加速训练收敛</li>
+          </ol>
+          <h3 id="5-2-残差连接"><a href="#5-2-残差连接" class="headerlink" title="5.2 残差连接"></a>5.2 残差连接</h3><p>残差连接的实现非常简单：</p>
+          <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">ResidualConnection</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, size, dropout</span>):</span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line">        <span class="variable language_">self</span>.norm = LayerNorm(size)</span><br><span class="line">        <span class="variable language_">self</span>.dropout = nn.Dropout(dropout)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x, sublayer</span>):</span><br><span class="line">        <span class="keyword">return</span> x + <span class="variable language_">self</span>.dropout(sublayer(<span class="variable language_">self</span>.norm(x)))</span><br></pre></td></tr></table></figure>
+          
+          <p>但它带来的好处是巨大的：</p>
+          <ol>
+          <li>缓解梯度消失问题</li>
+          <li>允许信息直接传递</li>
+          <li>使得网络可以更深</li>
+          </ol>
+          
+                
+              </div>
+              <footer class="article-footer">
+                <a data-url="http://yoursite.com/2023/11/13/%E6%B7%B1%E5%85%A5LLM%E5%9F%BA%E7%A1%80%EF%BC%8C%E6%89%8B%E6%92%95%E5%8F%98%E5%BD%A2%E9%87%91%E5%88%9A(Transformer)%EF%BC%81/" data-id="cm2x6va910004s8urde3pblk6" data-title="" class="article-share-link"><span class="fa fa-share">Share</span></a>
+                
+                
+                
+              </footer>
+            </div>
+            
+          </article>
+
+          <article id="post-库存热点问题，如何用Redis扛住百万QPS？" class="article article-type-post" itemscope itemprop="blogPost">
+            <div class="article-meta">
+              <a href="/2023/03/16/%E5%BA%93%E5%AD%98%E7%83%AD%E7%82%B9%E9%97%AE%E9%A2%98%EF%BC%8C%E5%A6%82%E4%BD%95%E7%94%A8Redis%E6%89%9B%E4%BD%8F%E7%99%BE%E4%B8%87QPS%EF%BC%9F/" class="article-date">
+            <time class="dt-published" datetime="2023-03-16T03:44:50.038Z" itemprop="datePublished">2023-03-16</time>
+          </a>
+              
+            </div>
+            <div class="article-inner">
+          
+              <header class="article-header">
+                  
+            
+                <h1 itemprop="name">
+                  <a class="article-title" href="/2023/03/16/%E5%BA%93%E5%AD%98%E7%83%AD%E7%82%B9%E9%97%AE%E9%A2%98%EF%BC%8C%E5%A6%82%E4%BD%95%E7%94%A8Redis%E6%89%9B%E4%BD%8F%E7%99%BE%E4%B8%87QPS%EF%BC%9F/">库存热点问题，如何用Redis扛住百万QPS？</a>
+                </h1>
+              
+            
+                  </header>
+              
+              
+              <div class="e-content article-entry" itemprop="articleBody">
+                
+                  <p>在电商领域，秒杀一直是一个技术挑战。当百万用户在同一时间抢购限量商品时，如何保证系统的稳定性和库存的正确性？</p>
+          <h2 id="一、场景分析与挑战"><a href="#一、场景分析与挑战" class="headerlink" title="一、场景分析与挑战"></a>一、场景分析与挑战</h2><p>假设我们面临这样一个场景：</p>
+          <ul>
+          <li>10万个商品库存</li>
+          <li>秒杀峰值可达100万QPS  </li>
+          <li>需要准确控制库存，不能超卖</li>
+          <li>需要保证系统的稳定性和可用性</li>
+          </ul>
+          <p>这个场景带来了几个主要挑战：</p>
+          <ol>
+          <li><p><strong>超高并发</strong>：100万QPS的写入对任何系统来说都是巨大压力</p>
+          </li>
+          <li><p><strong>库存热点</strong>：所有请求都在争抢同一个库存计数器，形成严重热点</p>
+          </li>
+          <li><p><strong>库存一致性</strong>：不能出现超卖，需要保证库存计数的准确性</p>
+          </li>
+          <li><p><strong>高可用性</strong>：秒杀时系统不能挂，要保持可用性</p>
+          </li>
+          </ol>
+          <h2 id="二、传统解决方案的问题"><a href="#二、传统解决方案的问题" class="headerlink" title="二、传统解决方案的问题"></a>二、传统解决方案的问题</h2><p>最简单直接的想法是用一个Redis key来做库存计数器：</p>
+          <figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 简单的扣减库存Lua脚本</span></span><br><span class="line"><span class="keyword">if</span> (redis.call(<span class="string">&#x27;exists&#x27;</span>, KEYS[<span class="number">1</span>]) == <span class="number">1</span>) <span class="keyword">then</span></span><br><span class="line">    <span class="keyword">local</span> stock = <span class="built_in">tonumber</span>(redis.call(<span class="string">&#x27;get&#x27;</span>, KEYS[<span class="number">1</span>]));</span><br><span class="line">    <span class="keyword">if</span> (stock &lt;= <span class="number">0</span>) <span class="keyword">then</span> <span class="keyword">return</span> <span class="number">0</span>; </span><br><span class="line">    <span class="keyword">end</span>;</span><br><span class="line">    redis.call(<span class="string">&#x27;decr&#x27;</span>, KEYS[<span class="number">1</span>]);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line"><span class="keyword">end</span>;</span><br><span class="line"><span class="keyword">return</span> <span class="number">0</span>;</span><br></pre></td></tr></table></figure>
+          
+          <p>但这种方案有明显问题：</p>
+          <ol>
+          <li><p>单个Redis key的QPS上限约为10万，无法承受100万QPS</p>
+          </li>
+          <li><p>所有流量集中在一个key，产生严重热点</p>
+          </li>
+          <li><p>Redis单机失效会导致整个秒杀系统瘫痪</p>
+          </li>
+          </ol>
+          <h2 id="三、基于分片的改进方案"><a href="#三、基于分片的改进方案" class="headerlink" title="三、基于分片的改进方案"></a>三、基于分片的改进方案</h2><p>为了解决单key的性能瓶颈，我们可以将库存分散到多个key。</p>
+          <p>主要思路是：</p>
+          <ol>
+          <li>将10万库存分散到100个key，每个key1000个库存</li>
+          <li>请求随机访问这100个key之一</li>
+          <li>各个key分布在不同的Redis实例上</li>
+          </ol>
+          <p>具体实现：</p>
+          <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">doSecKill</span><span class="params">(<span class="type">long</span> userId, <span class="type">long</span> itemId)</span> &#123;</span><br><span class="line">    <span class="comment">// 随机选择一个key</span></span><br><span class="line">    <span class="type">int</span> <span class="variable">keyIndex</span> <span class="operator">=</span> ThreadLocalRandom.current().nextInt(<span class="number">100</span>);</span><br><span class="line">    <span class="type">String</span> <span class="variable">stockKey</span> <span class="operator">=</span> <span class="string">&quot;stock_&quot;</span> + itemId + <span class="string">&quot;_&quot;</span> + keyIndex;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 扣减库存</span></span><br><span class="line">    <span class="type">String</span> <span class="variable">script</span> <span class="operator">=</span> <span class="string">&quot;if redis.call(&#x27;exists&#x27;,KEYS[1]) == 1 then ...&quot;</span></span><br><span class="line">    <span class="type">Long</span> <span class="variable">result</span> <span class="operator">=</span> redis.eval(script, stockKey);</span><br><span class="line">    <span class="keyword">return</span> result == <span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+          
+          <p>这样每个key的QPS降到1万以内，Redis可以轻松承受。</p>
+          <h2 id="四、随机起点轮询"><a href="#四、随机起点轮询" class="headerlink" title="四、随机起点轮询"></a>四、随机起点轮询</h2><p>但简单的随机分片可能导致库存分布不均。一个改进方案是使用随机起点轮询。</p>
+          <p>实现思路：</p>
+          <ol>
+          <li>每个用户请求时随机选择一个起点key</li>
+          <li>从该key开始轮询查询多个key</li>
+          <li>直到找到有库存的key或轮询完所有key</li>
+          </ol>
+          <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">doSecKill</span><span class="params">(<span class="type">long</span> userId, <span class="type">long</span> itemId)</span> &#123;</span><br><span class="line">    <span class="comment">// 随机起点</span></span><br><span class="line">    <span class="type">int</span> <span class="variable">startIndex</span> <span class="operator">=</span> ThreadLocalRandom.current().nextInt(<span class="number">100</span>);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 轮询多个key</span></span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; <span class="number">100</span>; i++) &#123;</span><br><span class="line">        <span class="type">int</span> <span class="variable">keyIndex</span> <span class="operator">=</span> (startIndex + i) % <span class="number">100</span>;</span><br><span class="line">        <span class="type">String</span> <span class="variable">stockKey</span> <span class="operator">=</span> <span class="string">&quot;stock_&quot;</span> + itemId + <span class="string">&quot;_&quot;</span> + keyIndex;</span><br><span class="line">        </span><br><span class="line">        <span class="type">Long</span> <span class="variable">result</span> <span class="operator">=</span> redis.eval(decrScript, stockKey);</span><br><span class="line">        <span class="keyword">if</span>(result == <span class="number">1</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+          
+          <p>这种方案可以：</p>
+          <ol>
+          <li>均衡各个key的库存分布</li>
+          <li>提高库存利用率</li>
+          <li>减少”死锁”现象</li>
+          </ol>
+          <h2 id="五、取巧方案：前端筛选"><a href="#五、取巧方案：前端筛选" class="headerlink" title="五、取巧方案：前端筛选"></a>五、取巧方案：前端筛选</h2><p>如果追求更高性能，还可以在前端做第一层筛选，减少库存查询的请求。</p>
+          <p>实现思路:</p>
+          <ol>
+          <li>计算出中奖概率 p &#x3D; 库存数&#x2F;预计请求量</li>
+          <li>前端生成随机数r，只有r &lt; p才去请求后端</li>
+          <li>后端依然需要严格控制库存</li>
+          </ol>
+          <p>示例代码：</p>
+          <figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 前端</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">doSecKill</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">const</span> p = <span class="number">100000</span> / <span class="number">1000000</span>; <span class="comment">// 中奖概率10%</span></span><br><span class="line">  <span class="keyword">const</span> r = <span class="title class_">Math</span>.<span class="title function_">random</span>();</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">if</span>(r &lt; p) &#123;</span><br><span class="line">    <span class="comment">// 调用后端秒杀接口</span></span><br><span class="line">    <span class="title function_">callSecKillAPI</span>();</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="comment">// 直接提示失败</span></span><br><span class="line">    <span class="title function_">showFailure</span>();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+          
+          <p>这种方案可以大幅降低后端压力，让用户快速得到反馈，提升用户体验，并且节省带宽资源。当然，这个方案也有局限性。中奖概率的精确控制较难，有可能导致库存卖不掉，不适合库存量较大的场景，最重要的是产品同学可能不会同意 ：）</p>
+          
+                
+              </div>
+              <footer class="article-footer">
+                <a data-url="http://yoursite.com/2023/03/16/%E5%BA%93%E5%AD%98%E7%83%AD%E7%82%B9%E9%97%AE%E9%A2%98%EF%BC%8C%E5%A6%82%E4%BD%95%E7%94%A8Redis%E6%89%9B%E4%BD%8F%E7%99%BE%E4%B8%87QPS%EF%BC%9F/" data-id="cm2x6va910005s8ur582qesbq" data-title="" class="article-share-link"><span class="fa fa-share">Share</span></a>
+                
+                
+                
+              </footer>
+            </div>
+            
+          </article>
+            
   
-    <article id="post-解决Spring-Boot项目集成shiro使用mockmvc测试遇到的问题" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2020/03/11/%E8%A7%A3%E5%86%B3Spring-Boot%E9%A1%B9%E7%9B%AE%E9%9B%86%E6%88%90shiro%E4%BD%BF%E7%94%A8mockmvc%E6%B5%8B%E8%AF%95%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/" class="article-date">
-  <time datetime="2020-03-11T04:03:12.000Z" itemprop="datePublished">2020-03-11</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
+          <article id="post-解决Spring-Boot项目集成shiro使用mockmvc测试遇到的问题" class="article article-type-post" itemscope itemprop="blogPost">
+        <div class="article-meta">
+          <a href="/2020/03/11/%E8%A7%A3%E5%86%B3Spring-Boot%E9%A1%B9%E7%9B%AE%E9%9B%86%E6%88%90shiro%E4%BD%BF%E7%94%A8mockmvc%E6%B5%8B%E8%AF%95%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/" class="article-date">
+        <time datetime="2020-03-11T04:03:12.000Z" itemprop="datePublished">2020-03-11</time>
+      </a>
+          
+        </div>
+        <div class="article-inner">
+          
+          
+            <header class="article-header">
+              
         
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2020/03/11/%E8%A7%A3%E5%86%B3Spring-Boot%E9%A1%B9%E7%9B%AE%E9%9B%86%E6%88%90shiro%E4%BD%BF%E7%94%A8mockmvc%E6%B5%8B%E8%AF%95%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/">解决Spring Boot项目集成shiro使用mockmvc测试遇到的问题</a>
-    </h1>
-  
+          <h1 itemprop="name">
+            <a class="article-title" href="/2020/03/11/%E8%A7%A3%E5%86%B3Spring-Boot%E9%A1%B9%E7%9B%AE%E9%9B%86%E6%88%90shiro%E4%BD%BF%E7%94%A8mockmvc%E6%B5%8B%E8%AF%95%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/">解决Spring Boot项目集成shiro使用mockmvc测试遇到的问题</a>
+          </h1>
+        
 
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>最近做了一个crm项目，项目中使用Shiro+JWT控制用户权限，在使用mockmvc测试的时候遇到了很多问题，记录一下解决方案。</p>
-<p>首先需要注入securityManager</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">@Resource</span><br><span class="line">org.apache.shiro.mgt.SecurityManager securityManager;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">@Before</span><br><span class="line">public void setUp() throws Exception &#123;</span><br><span class="line">    SecurityUtils.setSecurityManager(securityManager);</span><br><span class="line">    ThreadContext.bind(securityManager);</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+            </header>
+          
+          <div class="article-entry" itemprop="articleBody">
+            
+              <p>最近做了一个crm项目，项目中使用Shiro+JWT控制用户权限，在使用mockmvc测试的时候遇到了很多问题，记录一下解决方案。</p>
+      <p>首先需要注入securityManager</p>
+      <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">@Resource</span><br><span class="line">org.apache.shiro.mgt.SecurityManager securityManager;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">@Before</span><br><span class="line">public void setUp() throws Exception &#123;</span><br><span class="line">    SecurityUtils.setSecurityManager(securityManager);</span><br><span class="line">    ThreadContext.bind(securityManager);</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>执行测试用例抛了org.apache.shiro.authz.UnauthenticatedException<br>定位了半天，发现是由于shiro自定义的过滤器没有生效，使用如下代码添加过滤器</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">private MockMvc mockMvc;</span><br><span class="line">@Autowired</span><br><span class="line">WebApplicationContext context;</span><br><span class="line">@Resource</span><br><span class="line">org.apache.shiro.mgt.SecurityManager securityManager;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">@Before</span><br><span class="line">public void setUp() throws Exception &#123;</span><br><span class="line">    SecurityUtils.setSecurityManager(securityManager);</span><br><span class="line">    ThreadContext.bind(securityManager);</span><br><span class="line">    DefaultMockMvcBuilder builder &#x3D; MockMvcBuilders.webAppContextSetup(context);</span><br><span class="line">    builder.addFilters((javax.servlet.Filter) context.getBean(&quot;shiroFilterFactoryBean&quot;));</span><br><span class="line">    mockMvc &#x3D; builder.build();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+      <p>执行测试用例抛了org.apache.shiro.authz.UnauthenticatedException<br>定位了半天，发现是由于shiro自定义的过滤器没有生效，使用如下代码添加过滤器</p>
+      <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">private MockMvc mockMvc;</span><br><span class="line">@Autowired</span><br><span class="line">WebApplicationContext context;</span><br><span class="line">@Resource</span><br><span class="line">org.apache.shiro.mgt.SecurityManager securityManager;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">@Before</span><br><span class="line">public void setUp() throws Exception &#123;</span><br><span class="line">    SecurityUtils.setSecurityManager(securityManager);</span><br><span class="line">    ThreadContext.bind(securityManager);</span><br><span class="line">    DefaultMockMvcBuilder builder &#x3D; MockMvcBuilders.webAppContextSetup(context);</span><br><span class="line">    builder.addFilters((javax.servlet.Filter) context.getBean(&quot;shiroFilterFactoryBean&quot;));</span><br><span class="line">    mockMvc &#x3D; builder.build();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>如果出现No bean named ‘shiroFilter’ available，则要在shiroFilterFactoryBean方法的Bean注解中设置Bean的名字</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">@Bean(name &#x3D; &quot;shiroFilterFactoryBean&quot;)</span><br></pre></td></tr></table></figure>
+      <p>如果出现No bean named ‘shiroFilter’ available，则要在shiroFilterFactoryBean方法的Bean注解中设置Bean的名字</p>
+      <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">@Bean(name &#x3D; &quot;shiroFilterFactoryBean&quot;)</span><br></pre></td></tr></table></figure>
 
-<p>由于此项目采用在http header中携带token的方式进行登录状态的校验，所以在测试的时候，需要先通过业务逻辑获取token，然后将token写入header，可以使用:</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">HttpHeaders httpHeaders&#x3D; new HttpHeaders();</span><br><span class="line">httpHeaders.add(&quot;Token&quot;,token);</span><br><span class="line">mockMvc.perform(get(&quot;&#x2F;xxxxx&quot;).headers(httpHeaders)</span><br></pre></td></tr></table></figure>
+      <p>由于此项目采用在http header中携带token的方式进行登录状态的校验，所以在测试的时候，需要先通过业务逻辑获取token，然后将token写入header，可以使用:</p>
+      <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">HttpHeaders httpHeaders&#x3D; new HttpHeaders();</span><br><span class="line">httpHeaders.add(&quot;Token&quot;,token);</span><br><span class="line">mockMvc.perform(get(&quot;&#x2F;xxxxx&quot;).headers(httpHeaders)</span><br></pre></td></tr></table></figure>
 
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://yoursite.com/2020/03/11/%E8%A7%A3%E5%86%B3Spring-Boot%E9%A1%B9%E7%9B%AE%E9%9B%86%E6%88%90shiro%E4%BD%BF%E7%94%A8mockmvc%E6%B5%8B%E8%AF%95%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/" data-id="ck81q06d90000o87k163w269e" class="article-share-link">Share</a>
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/shiro-mockmvc/" rel="tag">shiro mockmvc</a></li></ul>
+            
+          </div>
+          <footer class="article-footer">
+            <a data-url="http://yoursite.com/2020/03/11/%E8%A7%A3%E5%86%B3Spring-Boot%E9%A1%B9%E7%9B%AE%E9%9B%86%E6%88%90shiro%E4%BD%BF%E7%94%A8mockmvc%E6%B5%8B%E8%AF%95%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/" data-id="ck81q06d90000o87k163w269e" class="article-share-link">Share</a>
+            
+            
+        <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/shiro-mockmvc/" rel="tag">shiro mockmvc</a></li></ul>
 
-    </footer>
-  </div>
-  
-</article>
+          </footer>
+        </div>
+        
+      </article>
 
 
   
@@ -333,7 +1399,13 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li></ul>
+      <ul class="archive-list">
+        <li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/06/">June 2024</a></li>
+        <li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/05/">May 2024</a></li>
+        <li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">November 2023</a></li>
+        <li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">March 2023</a></li>
+        <li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">March 2020</a></li>
+      </ul>
     </div>
   </div>
 
@@ -346,7 +1418,19 @@
       <ul>
         
           <li>
-            <a href="/2020/03/11/%E8%A7%A3%E5%86%B3Spring-Boot%E9%A1%B9%E7%9B%AE%E9%9B%86%E6%88%90shiro%E4%BD%BF%E7%94%A8mockmvc%E6%B5%8B%E8%AF%95%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/">解决Spring Boot项目集成shiro使用mockmvc测试遇到的问题</a>
+            <a href="/2024/06/21/Go%20vs%20Java%E6%B7%B1%E5%85%A5%E5%AF%B9%E6%AF%94%E7%B3%BB%E5%88%97%EF%BC%88%E5%9B%9B%EF%BC%89%EF%BC%9A%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/">Go vs Java深入对比系列（四）：并发编程</a>
+          </li>
+          <li>
+            <a href="/2024/06/19/Go%20vs%20Java%E6%B7%B1%E5%85%A5%E5%AF%B9%E6%AF%94%E7%B3%BB%E5%88%97%EF%BC%88%E4%B8%89%EF%BC%89%EF%BC%9A%E9%94%99%E8%AF%AF%E5%A4%84%E7%90%86/">Go vs Java深入对比系列（三）：错误处理</a>
+          </li>
+          <li>
+            <a href="/2024/06/10/Go%20vs%20Java%E6%B7%B1%E5%85%A5%E5%AF%B9%E6%AF%94%E7%B3%BB%E5%88%97%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9A%E7%B1%BB%E5%9E%8B%E7%B3%BB%E7%BB%9F/">Go vs Java深入对比系列（二）：类型系统</a>
+          </li>
+          <li>
+            <a href="/2024/05/30/Go%20vs%20Java%E6%B7%B1%E5%85%A5%E5%AF%B9%E6%AF%94%E7%B3%BB%E5%88%97%EF%BC%88%E5%9B%9B%EF%BC%89%EF%BC%9A%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/">Go vs Java深入对比系列（一）：语言设计哲学</a>
+          </li>
+          <li>
+            <a href="/2023/11/13/%E6%B7%B1%E5%85%A5LLM%E5%9F%BA%E7%A1%80%EF%BC%8C%E6%89%8B%E6%92%95%E5%8F%98%E5%BD%A2%E9%87%91%E5%88%9A(Transformer)%EF%BC%81/">深入LLM基础，手撕变形金刚(Transformer)！</a>
           </li>
         
       </ul>
